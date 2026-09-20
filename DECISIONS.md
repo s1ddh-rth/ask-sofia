@@ -66,3 +66,93 @@ followers' mouths. The route now re-derives it from the item and the context
 with the same engine. Because `decide` is deterministic this is the same
 answer the person saw, and it is now the engine's answer rather than anyone
 else's.
+
+---
+
+## How the decision layer was built
+
+This is the part worth explaining, because it is the whole product. The
+question was how to get from a creator's offhand remarks to something that
+can answer a stranger at 3am and still sound like her.
+
+### Her words became fields, not prose
+
+Every rule in the engine traces to something she actually said in the
+evidence. Nothing was invented to fill a gap, and where the evidence was
+silent the field is null rather than guessed.
+
+| What she said | Where it went | What it does |
+| --- | --- | --- |
+| "£35 is enough" (E-04.4, E-05.1) | `rules.basicCapGBP: 35` and `white-tee.cheaperOk` | Any basic priced over £35 points at the cheaper one |
+| "soft but pills" (E-04.7) | `grey-knit.caveat.severity: "hard"` | Overrules the item's own type and returns SKIP |
+| "buy once, wear forever" (E-04.1) | `black-blazer.verdictType: "investment"` | Sends it down the cost per wear branch |
+| "date-night shoe" (E-04.6) | `red-slingback.verdictType: "statement"` | Waits until there is somewhere to be |
+| "looks insane, too warm" (E-05.1) | `vintage-leather.seasonNote` | Waits, and says why in her words |
+| "3 things I truly love" | `rules.maxPairings: 3` | Caps how many pairings a card will name |
+
+The test for whether something belongs in data rather than code is simple. If
+Sofia could disagree with it, it is data. `basicCapGBP` is an opinion, so it
+lives in `sofia.json`. The arithmetic that divides price by wears is not an
+opinion, so it lives in `decide.ts`.
+
+### Five verdict types, because she has five moods
+
+The types came from sorting her eight pieces by how she talks about them, not
+from a taxonomy. `investment` gets the cost per wear treatment.  `basic` gets
+a price ceiling. `statement` needs an occasion. `situational` needs the right
+day. `avoid` is a no. Each type is a different question, which is why each
+gets its own branch rather than a shared score.
+
+### First match wins, and the order is the opinion
+
+`decide` walks its rules in a fixed order and the first that matches returns.
+The order encodes what beats what, and that ordering is itself a judgement:
+
+1. **Her confirmed answer** beats everything, including the engine.
+2. **Stock** beats taste, because there is nothing to decide about a thing
+   you cannot buy.
+3. **A hard caveat** beats the item's type. The grey knit is an investment
+   piece on paper, £78 and worn weekly is £1.63 a wear, which the cost per
+   wear rule would happily call a BUY. Her "soft but pills" outranks the
+   maths, so it returns SKIP. This is the clearest case of her judgement
+   beating a number.
+4. Then the type rules, then budget.
+
+### Two worked examples
+
+**A £60 white tee, worn weekly.** Not out of stock, no caveat, so it reaches
+rule 4. It is a `basic` and £60 is over her £35 cap, so it returns WAIT with
+`cheaperOk` attached. It never reaches the cost per wear rule, even though
+£60 over a year of weekly wear is £1.25 a wear and would have passed easily.
+That is deliberate. Her position on basics is a ceiling, not a calculation.
+
+**The blazer at £145, worn weekly.** Reaches rule 5 as an `investment`. Four
+wears a month over twelve months is 48 wears, so £3.02 a wear, under her £4
+line, so BUY. Tap "now and then" instead and the same item is 6 wears,
+£24.17 a wear, and the same rule returns WAIT. One input changed, the verdict
+flipped, and the reason on the card is the arithmetic itself.
+
+### Not knowing is a first class answer
+
+Rule 10 exists because the failure mode that kills trust is a confident wrong
+answer. Three things escalate rather than guess. An item she has not written
+about. An investment piece with no idea how often it would be worn, because
+the cost per wear is the entire argument and without it there is nothing to
+say. Conflicting signals. Each one lands in her queue packaged with what they
+tapped and what the engine did, so answering takes seconds.
+
+### What the language model is allowed near
+
+It turns "anything like this but under £120" into
+`{job:"cheaper", budgetGBP:120}`. That is all. It never sees a verdict, never
+writes a reason, and cannot invent an item id, because the output guardrail
+checks every id against the loaded data and nulls anything else. The keyword
+matcher behind it already scores 12 of 12 on the real DMs, so the model is an
+upgrade on a working floor rather than a dependency.
+
+### The part that was cut
+
+A scoring model that weighed all the signals together and returned a
+confidence was considered and dropped. It would have made every verdict
+unexplainable, and "Sofia says soft but pills" is worth more to a follower
+than "0.31 confidence". Ordered rules make the card write itself.

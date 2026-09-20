@@ -93,6 +93,8 @@ export default function Audience({
   const [askedItem, setAskedItem] = useState<Item | null>(null);
   const [job, setJob] = useState<Job>("should-buy");
   const [questionId, setQuestionId] = useState<string | null>(null);
+  const [remote, setRemote] = useState<Verdict | null>(null);
+  const [asking, setAsking] = useState(false);
   const [thanks, setThanks] = useState(false);
 
   const [barOpen, setBarOpen] = useState(false);
@@ -127,11 +129,17 @@ export default function Audience({
     });
   }, [touched, asked, subject, context, rules, copy, byId, overrides, key]);
 
-  // Every ask is logged for her queue. The verdict on screen never waits on
-  // this, and a failed log changes nothing the person sees.
+  // A typed question is answered by the server, which has Groq in front of
+  // the keyword matcher. The local verdict shows first so nothing waits, and
+  // it stands if the request fails.
+  const shown = remote ?? verdict;
+
+  // Taps are logged for her queue. The verdict on screen never waits on this,
+  // and a failed log changes nothing the person sees. Typed questions log
+  // themselves through the same route that answers them.
   const logged = useRef<string>("");
   useEffect(() => {
-    if (!verdict) return;
+    if (!verdict || asked) return;
     const signature = JSON.stringify({ key, context });
     if (logged.current === signature) return;
     const timer = setTimeout(() => {
@@ -161,6 +169,7 @@ export default function Audience({
     setAsked(null);
     setJob("should-buy");
     setThanks(false);
+    setRemote(null);
   }
 
   function toggleOwn(tag: string) {
@@ -170,19 +179,47 @@ export default function Audience({
     );
   }
 
-  function askQuestion() {
+  async function askQuestion() {
     const text = question.trim();
     if (!text) return;
+
+    // Answer from the keyword matcher straight away so nothing waits.
     const parsed = parseFallback(text, items, ownedTags);
-    setJob(parsed.job);
-    setThanks(false);
-    setAsked({
+    const local = {
       wear: parsed.wear ?? wear,
       budgetGBP: parsed.budgetGBP ?? budget,
       owns: parsed.owns.length > 0 ? parsed.owns : owns,
       occasion: parsed.occasion ?? (occasion || undefined),
-    });
+    };
+    setJob(parsed.job);
+    setThanks(false);
+    setRemote(null);
+    setAsked(local);
     setAskedItem(parsed.itemId ? (byId[parsed.itemId] ?? null) : item);
+
+    // Then let the server read it properly and log it.
+    setAsking(true);
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          rawText: text,
+          context: { wear, budgetGBP: budget, owns, occasion: occasion || null },
+        }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        if (d?.verdict) setRemote(d.verdict as Verdict);
+        if (d?.job) setJob(d.job);
+        if (d?.questionId) setQuestionId(d.questionId);
+        setAskedItem(d?.itemId ? (byId[d.itemId] ?? null) : item);
+      }
+    } catch {
+      // The local answer already on screen stands.
+    } finally {
+      setAsking(false);
+    }
   }
 
   async function sendToSofia() {
@@ -315,16 +352,17 @@ export default function Audience({
           <button
             type="button"
             onClick={askQuestion}
-            className="rounded-sm bg-ink px-4 py-3 font-mono text-[11px] uppercase tracking-[0.1em] text-card active:opacity-80"
+            disabled={asking}
+            className="rounded-sm bg-ink px-4 py-3 font-mono text-[11px] uppercase tracking-[0.1em] text-card active:opacity-80 disabled:opacity-60"
           >
-            Ask
+            {asking ? "..." : "Ask"}
           </button>
         </div>
       </div>
 
-      {verdict ? (
+      {shown ? (
         <VerdictCard
-          verdict={verdict}
+          verdict={shown}
           copy={copy}
           onThumbsDown={thumbsDown}
           thanks={thanks}

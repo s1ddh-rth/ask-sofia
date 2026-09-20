@@ -3,7 +3,7 @@ import { z } from "zod";
 import { badRequest, ContextSchema, JobSchema, sanitiseText, toContext } from "@/lib/api";
 import { groupKey } from "@/lib/data/load";
 import { decide } from "@/lib/engine/decide";
-import { parseFallback } from "@/lib/parse/fallback";
+import { parseQuestion } from "@/lib/parse/groq";
 import { loadLive, logQuestion } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -33,12 +33,17 @@ export async function POST(req: Request) {
   let source = input.source;
   const rawText = input.rawText ? sanitiseText(input.rawText) : null;
 
-  // Free text goes through the keyword matcher. P5 puts Groq in front of it.
+  // Free text goes to Groq, which falls back to the keyword matcher on any
+  // failure. Either way all it produces is a validated schema.
   if (rawText) {
-    const read = parseFallback(rawText, data.items, data.ownedTags);
+    const { parsed: read, source: from } = await parseQuestion(
+      rawText,
+      data.items,
+      data.ownedTags,
+    );
     job = input.job ?? read.job;
     itemId = input.itemId ?? read.itemId;
-    source = "fallback";
+    source = from;
     if (read.wear) context.wear = context.wear ?? read.wear;
     if (read.budgetGBP) context.budgetGBP = context.budgetGBP ?? read.budgetGBP;
     if (read.owns.length > 0 && context.owns.length === 0) context.owns = read.owns;
