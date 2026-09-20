@@ -4,13 +4,6 @@ import BuyTap from "./buy";
 
 export const dynamic = "force-dynamic";
 
-const CALL_CLASS: Record<string, string> = {
-  BUY: "stamp",
-  WAIT: "stamp",
-  SKIP: "stamp",
-  ESCALATE: "stamp",
-};
-
 export async function generateMetadata({
   params,
 }: {
@@ -67,35 +60,34 @@ export default async function SharePage({
   const answered = data.overrides[share.verdict.groupKey] ?? null;
   const asked = share.verdict.asked === true;
   const copy = data.copy;
+  const ui = copy.ui as Record<string, string>;
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-20 pt-10">
-      <p className="label">Sofia&rsquo;s verdict</p>
-      <h1 className="font-heading mt-2 text-4xl font-bold uppercase leading-[0.95]">
-        {item ? item.name : "A piece she has not talked about"}
+      <p className="label">
+        {ui.sharedHandle} / shared with you
+      </p>
+      <h1 className="font-heading mt-2 text-5xl font-bold uppercase leading-[0.9]">
+        {ui.sharedHeading}{" "}
+        <span className="text-rust">
+          {copy.callLabels[snapshot.call]}
+        </span>
       </h1>
-      {item ? (
-        <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
-          {[item.category, `£${item.price}`].filter(Boolean).join(" / ")}
-        </p>
-      ) : null}
+      <p className="mt-3 text-lg leading-snug">
+        {item ? item.name : "A piece she has not talked about"}
+        {item ? (
+          <span className="text-muted"> / £{item.price}</span>
+        ) : null}
+      </p>
 
-      <section className="mt-6 rounded-sm border border-ink/10 bg-card p-5">
-        <div className="flex items-start justify-between gap-4">
-          <span className={`${CALL_CLASS[snapshot.call]} px-3 py-2 text-3xl`}>
-            {copy.callLabels[snapshot.call]}
-          </span>
-          {snapshot.costPerWear !== undefined ? (
-            <span className="text-right">
-              <span className="label block">Cost per wear</span>
-              <span className="font-heading text-2xl font-bold">
-                £{snapshot.costPerWear.toFixed(2)}
-              </span>
-            </span>
-          ) : null}
-        </div>
+      <section className="mt-5 rounded-sm border border-ink/10 bg-card p-5">
+        {snapshot.costPerWear !== undefined ? (
+          <p className="label">
+            Cost per wear £{snapshot.costPerWear.toFixed(2)}
+          </p>
+        ) : null}
 
-        <ul className="mt-5 space-y-2">
+        <ul className="space-y-2 [&:not(:first-child)]:mt-3">
           {snapshot.reasons.map((reason, i) => (
             <li key={i} className="text-[15px] leading-relaxed">
               {reason}
@@ -119,13 +111,12 @@ export default async function SharePage({
 
         {snapshot.paidDisclosure ? (
           <p className="mt-4 font-mono text-[11px] uppercase leading-relaxed tracking-[0.1em] text-muted">
-            {(copy.ui as Record<string, string>).paidDisclosure}
+            {ui.paidDisclosure}
           </p>
         ) : null}
 
         <p className="label mt-5 border-t border-ink/10 pt-4">
-          This was her answer for one person&rsquo;s wardrobe and budget. Yours
-          may differ.
+          {ui.sharedContext}
         </p>
       </section>
 

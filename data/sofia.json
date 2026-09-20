@@ -277,7 +277,10 @@
       "tagline": "Her actual opinion on whether a piece is worth it for you, not a link. Pick anything she has talked about.",
       "noMatches": "Nothing matches that. She has not talked about everything yet.",
       "unknownPiece": "Something she has not talked about",
-      "browseAll": "See what she has talked about"
+      "browseAll": "See what she has talked about",
+      "sharedHeading": "Sofia says",
+      "sharedHandle": "@sofiabennett.style",
+      "sharedContext": "Her answer for one person's wardrobe and budget. Yours may differ."
     }
   }
 }
