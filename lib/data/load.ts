@@ -46,7 +46,18 @@ const ItemInputSchema = z.looseObject({
   link: z.string().optional(),
   evidence: z.array(z.string()).optional(),
   addedAt: z.string().optional(),
-  image: z.string().optional(),
+  // A drawing under public/, so a path and nothing else. next/image renders
+  // whatever it is handed, and a patch is the only way this field ever
+  // changes, so a remote URL, a data: or javascript: URI, or a path that
+  // climbs out of the folder is refused here rather than shipped to everyone
+  // as a broken frame.
+  image: z
+    .string()
+    .regex(
+      /^\/[\w\-/]+\.(svg|png|jpg|jpeg|webp|avif)$/,
+      "must be a path to a file under public/, such as /items/black-blazer.svg",
+    )
+    .optional(),
 });
 
 const RulesSchema = z.object({

@@ -207,6 +207,22 @@ describe("patches", () => {
     expect(data.patchErrors[0].field).toBe("cpwMaxGBP");
   });
 
+  it("rejects an image that is not a drawing in /public", () => {
+    for (const image of [
+      "javascript:alert(1)",
+      "data:image/svg+xml;base64,PHN2Zy8+",
+      "https://example.com/x.png",
+      "//example.com/x.png",
+      "../../../etc/passwd",
+    ]) {
+      const data = loadData({
+        patches: [{ target: "loafers", change: { image }, reason: "Bad art" }],
+      });
+      expect(data.patchErrors[0]?.field).toBe("image");
+      expect(data.byId["loafers"].image).toBe("/items/loafers.svg");
+    }
+  });
+
   it("rejects one bad patch without losing the good ones around it", () => {
     const patches: Patch[] = [
       { target: "white-tee", change: { price: 20 }, reason: "good" },
