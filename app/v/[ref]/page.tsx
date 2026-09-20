@@ -48,7 +48,7 @@ export default async function SharePage({
           That link has expired or was never a verdict.
         </p>
         <Link href="/" className="label mt-6 inline-block">
-          See what she has written about &rarr;
+          See what she has talked about &rarr;
         </Link>
       </main>
     );
@@ -70,7 +70,7 @@ export default async function SharePage({
     <main className="mx-auto w-full max-w-md px-5 pb-20 pt-10">
       <p className="label">Sofia&rsquo;s verdict</p>
       <h1 className="font-heading mt-2 text-4xl font-bold uppercase leading-[0.95]">
-        {item ? item.name : "A piece she has not written about"}
+        {item ? item.name : "A piece she has not talked about"}
       </h1>
       {item ? (
         <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
@@ -161,7 +161,7 @@ export default async function SharePage({
         </Link>
       ) : (
         <Link href="/" className="label mt-6 inline-block">
-          See what she has written about &rarr;
+          See what she has talked about &rarr;
         </Link>
       )}
     </main>

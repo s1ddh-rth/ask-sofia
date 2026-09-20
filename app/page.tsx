@@ -53,8 +53,7 @@ export default async function Home() {
         Ask Sofia
       </h1>
       <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted">
-        Her actual opinion on whether a piece is worth it for you, not a link.
-        Pick something she has written about.
+        {ui.tagline}
       </p>
 
       <Browse cards={cards} copy={ui} />

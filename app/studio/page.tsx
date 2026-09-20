@@ -26,7 +26,8 @@ export default async function StudioPage() {
     const existing = groups.get(key);
     const itemName = q.item_id
       ? (data.byId[q.item_id]?.name ?? q.item_id.replace(/-/g, " "))
-      : "Something she has not written about";
+      : ((data.copy.ui as Record<string, string>).unknownPiece ??
+        "Something she has not talked about");
 
     if (!existing) {
       groups.set(key, {

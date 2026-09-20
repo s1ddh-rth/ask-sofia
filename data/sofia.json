@@ -241,7 +241,7 @@
       "overBudgetNoAlternative": "She has no cheaper version of this one she would stand behind.",
       "pairings": "Goes with what you already own, {pairings}.",
       "buyAgainTrue": "She would buy it again.",
-      "escalateUnknown": "Sofia has not written about this one yet.",
+      "escalateUnknown": "Sofia has not talked about this one yet.",
       "escalateMissingWear": "How often you would actually wear it decides this one.",
       "statementFits": "You have somewhere to be, and that is the whole point of this one.",
       "basicUnderCap": "It is a basic and this is within the £{cap} she says is enough.",
@@ -273,7 +273,11 @@
       "sortAsked": "Most asked",
       "sortPrice": "Price",
       "sortPriceLow": "Price, low first",
-      "sortPriceHigh": "Price, high first"
+      "sortPriceHigh": "Price, high first",
+      "tagline": "Her actual opinion on whether a piece is worth it for you, not a link. Pick anything she has talked about.",
+      "noMatches": "Nothing matches that. She has not talked about everything yet.",
+      "unknownPiece": "Something she has not talked about",
+      "browseAll": "See what she has talked about"
     }
   }
 }

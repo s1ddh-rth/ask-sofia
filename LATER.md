@@ -41,3 +41,29 @@ Whether creator product tags are readable through the API, and TikTok's equivale
 ## Beyond today
 
 The full 36-item wardrobe. TikTok alongside Instagram.
+
+## Why she said it, for a piece she has never seen
+
+Today the engine can only answer for a piece Sofia has talked about, and
+everything else escalates. The interesting question for a production app is
+the one a follower actually asks about something new, which is what would she
+say about this.
+
+That is not a verdict problem, it is a reasons problem. Her eight verdicts
+already encode principles she has never written down, that a basic has a
+ceiling, that a statement piece needs an occasion, that pilling outranks
+softness, that cost per wear beats sticker price. An extraction model reading
+her past verdicts and the words attached to them could propose those
+principles back to her in her own language, as candidate rules rather than as
+answers.
+
+The shape stays the same as everything else here. The model proposes, the
+heuristics decide what is worth proposing, and Sofia confirms before anything
+goes live. A confirmed principle becomes a rule in the data, which means a new
+piece gets a real verdict with a real reason instead of an escalation, and the
+reason can still be traced to the verdicts it was drawn from. Anything she
+rejects becomes an eval case, and her confirm rate is the quality metric.
+
+What must not happen is the model answering directly for an unseen piece. That
+is the one thing the whole architecture exists to prevent, and it would put
+words in her mouth about a product she has never held.

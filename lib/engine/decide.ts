@@ -75,7 +75,7 @@ export function decide({
     };
   }
 
-  // Rule 10. She has not written about this one, so it goes to her queue.
+  // Rule 10. She has not talked about this one, so it goes to her queue.
   if (!item) {
     return {
       call: "ESCALATE",

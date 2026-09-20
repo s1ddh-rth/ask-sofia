@@ -136,7 +136,7 @@ export default function Browse({
 
       {shown.length === 0 ? (
         <p className="mt-6 rounded-sm border border-ink/10 bg-card px-4 py-6 text-[15px] text-muted">
-          Nothing matches that. She has not written about everything yet.
+          {copy.noMatches}
         </p>
       ) : (
         <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
