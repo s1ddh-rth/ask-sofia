@@ -195,7 +195,6 @@ export default function Audience({
           itemId: subject?.id ?? itemSlug,
           job,
           context,
-          verdict,
           note,
           rawText: question.trim() || null,
         }),

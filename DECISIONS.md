@@ -57,3 +57,12 @@ still runs in the browser, so the page keeps working with no backend.
 The verdict is computed in the browser and shown immediately. The log to
 `/api/ask` is fired afterwards, debounced, and a failure changes nothing the
 person sees. That keeps rule 7 true while still filling her queue.
+
+## The escalation route derives the verdict itself
+
+`/api/escalate` used to write the verdict the client sent it. Sofia answers
+from what she reads in the queue, so a caller could have put words in her
+followers' mouths. The route now re-derives it from the item and the context
+with the same engine. Because `decide` is deterministic this is the same
+answer the person saw, and it is now the engine's answer rather than anyone
+else's.
