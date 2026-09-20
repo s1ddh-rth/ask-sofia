@@ -207,7 +207,7 @@
       "ESCALATE": "Ask Sofia"
     },
     "reasons": {
-      "quote": "Sofia says \"{quote}\".",
+      "quote": "Her words on it, \"{quote}\".",
       "stockOut": "It is out of stock, so there is nothing to decide today.",
       "stockOutAlternative": "Her stand in is {alternative}.",
       "hardCaveat": "Her note on this one is \"{caveat}\", and that is the whole problem.",
@@ -224,7 +224,10 @@
       "pairings": "Goes with what you already own, {pairings}.",
       "buyAgainTrue": "She would buy it again.",
       "escalateUnknown": "Sofia has not written about this one yet.",
-      "escalateMissingWear": "How often you would actually wear it decides this one."
+      "escalateMissingWear": "How often you would actually wear it decides this one.",
+      "statementFits": "You have somewhere to be, and that is the whole point of this one.",
+      "basicUnderCap": "It is a basic and this is within the £{cap} she says is enough.",
+      "clearNothingAgainst": "Nothing about your answers argues against it."
     },
     "ui": {
       "takeLabel": "Sofia's take",

@@ -122,3 +122,51 @@ describe("decide", () => {
     expect(twice).toEqual(once);
   });
 });
+
+describe("the card explains itself", () => {
+  const data = loadData();
+  const say = (id: string, context: Partial<UserContext> = {}) =>
+    decide({
+      item: data.byId[id],
+      context: { owns: [], ...context },
+      rules: data.rules,
+      copy: data.copy,
+      byId: data.byId,
+    });
+
+  it("tells the slingback buyer why having somewhere to be matters", () => {
+    const v = say("red-slingback", { occasion: true });
+    expect(v.call).toBe("BUY");
+    expect(v.reasons.length).toBeGreaterThan(1);
+    expect(v.reasons.join(" ").toLowerCase()).toContain("somewhere to be");
+  });
+
+  it("says why a basic within her cap is fine", () => {
+    const v = say("white-tee", { wear: "weekly" });
+    expect(v.call).toBe("BUY");
+    expect(v.reasons.join(" ")).toContain("35");
+  });
+
+  it("never leaves a verdict standing on the quote alone", () => {
+    for (const item of data.items) {
+      for (const context of [
+        { owns: [] },
+        { owns: [], wear: "weekly" as const },
+        { owns: [], occasion: true },
+        { owns: [], wear: "occasional" as const, budgetGBP: 50 },
+      ]) {
+        const v = decide({
+          item,
+          context,
+          rules: data.rules,
+          copy: data.copy,
+          byId: data.byId,
+        });
+        expect(
+          v.reasons.length,
+          `${item.id} gave only one reason for ${JSON.stringify(context)}`,
+        ).toBeGreaterThan(1);
+      }
+    }
+  });
+});

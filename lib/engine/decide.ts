@@ -235,10 +235,14 @@ export function decide({
     ]);
   }
 
-  // Nothing stood in the way.
-  return settle("BUY", "clear", [
-    quote,
-    ...(item.verdictType === "situational" ? [R.situationalFits] : []),
-    ...(item.buyAgain === true ? [R.buyAgainTrue] : []),
-  ]);
+  // Nothing stood in the way. Say why, rather than leaving her quote to
+  // carry the whole card on its own.
+  const clearReasons = [quote];
+  if (item.verdictType === "situational") clearReasons.push(R.situationalFits);
+  if (item.verdictType === "statement") clearReasons.push(R.statementFits);
+  if (item.verdictType === "basic")
+    clearReasons.push(fill(R.basicUnderCap, { cap: rules.basicCapGBP }));
+  if (item.buyAgain === true) clearReasons.push(R.buyAgainTrue);
+  if (clearReasons.length === 1) clearReasons.push(R.clearNothingAgainst);
+  return settle("BUY", "clear", clearReasons);
 }
