@@ -32,13 +32,26 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const supabaseConfigured = Boolean(SUPABASE_URL && SERVICE_KEY);
 
-// The fallback. Lives for as long as the server instance does, which is all
-// it promises to do.
-const memory = {
-  questions: [] as QuestionRow[],
-  overrides: new Map<string, OverrideAnswer>(),
-  patches: [] as Patch[],
+type Memory = {
+  questions: QuestionRow[];
+  overrides: Map<string, OverrideAnswer>;
+  patches: Patch[];
 };
+
+// The fallback. Lives for as long as the server instance does, which is all
+// it promises to do. It hangs off globalThis because Next gives every route
+// its own copy of this module. A plain module level object would leave the
+// queue, the studio and the audience page each holding a different memory,
+// so with the database down nothing she answered would reach anyone.
+const globalForMemory = globalThis as typeof globalThis & {
+  __askSofiaMemory?: Memory;
+};
+
+const memory: Memory = (globalForMemory.__askSofiaMemory ??= {
+  questions: [],
+  overrides: new Map(),
+  patches: [],
+});
 
 function newId(): string {
   return globalThis.crypto.randomUUID();
