@@ -39,3 +39,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# secrets stay server side, but the template is committed
+!.env.example
+
+# never commit photos or scans of the case file
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.heic
+*.avif
+*.tiff
+*.bmp
+!app/favicon.ico
+
+# agent skill bundles
+/.agents
+/.claude/skills
