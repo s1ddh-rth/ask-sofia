@@ -6,9 +6,11 @@ import { useState } from "react";
 export default function LoginForm({
   next,
   demoUser,
+  demoEnabled,
 }: {
   next: string;
   demoUser: string;
+  demoEnabled: boolean;
 }) {
   const router = useRouter();
   // Pre-filled on purpose. This is a demo account, and a judge should not
@@ -17,6 +19,30 @@ export default function LoginForm({
   const [password, setPassword] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "failed">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // One tap, no credential typed and none sent. The server already has it.
+  async function signInAsSofia() {
+    setState("sending");
+    setError(null);
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ demo: true }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => null);
+        setError(d?.error ?? "Could not sign in.");
+        setState("failed");
+        return;
+      }
+      router.replace(next);
+      router.refresh();
+    } catch {
+      setError("Could not sign in. Try once more.");
+      setState("failed");
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +69,27 @@ export default function LoginForm({
   }
 
   return (
-    <form onSubmit={submit} className="mt-8">
+    <>
+      {demoEnabled ? (
+        <div className="mt-8">
+          <button
+            type="button"
+            onClick={signInAsSofia}
+            disabled={state === "sending"}
+            className="w-full rounded-sm bg-rust px-4 py-4 font-heading text-xl font-semibold uppercase text-card disabled:opacity-60"
+          >
+            {state === "sending" ? "Signing in" : "Sign in as Sofia"}
+          </button>
+          <p className="label mt-2 leading-relaxed">
+            Demo account for judges. One tap, no password needed.
+          </p>
+          <p className="label mt-4 border-t border-ink/10 pt-4">
+            Or sign in with the password
+          </p>
+        </div>
+      ) : null}
+
+      <form onSubmit={submit} className="mt-4">
       <p className="label">Who</p>
       <input
         value={user}
@@ -75,13 +121,10 @@ export default function LoginForm({
         {state === "sending" ? "Signing in" : "Sign in"}
       </button>
 
-      <p className="label mt-5 border-t border-ink/10 pt-4 leading-relaxed">
-        Demo account for judges
-      </p>
-      <p className="mt-1 text-[15px] leading-relaxed text-muted">
-        The credentials are in the submission notes. This is one shared login
-        for the demo, not an account system.
-      </p>
-    </form>
+        <p className="label mt-5 border-t border-ink/10 pt-4 leading-relaxed">
+          One shared login for the demo, not an account system
+        </p>
+      </form>
+    </>
   );
 }

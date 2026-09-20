@@ -63,3 +63,23 @@ describe("the studio session", () => {
     expect(await isValid("studio.99999999999999.anything")).toBe(false);
   });
 });
+
+describe("the one tap demo sign in", () => {
+  it("is on when the studio is configured", async () => {
+    const { demoLoginEnabled } = await import("@/lib/session");
+    expect(demoLoginEnabled()).toBe(true);
+  });
+
+  it("is off when explicitly switched off", async () => {
+    process.env.DEMO_LOGIN = "false";
+    const { demoLoginEnabled } = await import("@/lib/session");
+    expect(demoLoginEnabled()).toBe(false);
+    delete process.env.DEMO_LOGIN;
+  });
+
+  it("is off when the studio is not configured at all", async () => {
+    delete process.env.SESSION_SECRET;
+    const { demoLoginEnabled } = await import("@/lib/session");
+    expect(demoLoginEnabled()).toBe(false);
+  });
+});

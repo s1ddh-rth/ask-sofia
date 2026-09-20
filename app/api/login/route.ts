@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { badRequest } from "@/lib/api";
-import { checkPassword, issue, studioConfigured } from "@/lib/session";
+import {
+  checkPassword,
+  demoLoginEnabled,
+  issue,
+  studioConfigured,
+} from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-const LoginSchema = z.object({
-  user: z.string().min(1).max(200),
-  password: z.string().min(1).max(200),
-});
+const LoginSchema = z.union([
+  z.object({
+    user: z.string().min(1).max(200),
+    password: z.string().min(1).max(200),
+  }),
+  // The one tap demo sign in. No credential crosses the wire, because the
+  // server already has it.
+  z.object({ demo: z.literal(true) }),
+]);
 
 export async function POST(req: Request) {
   if (!studioConfigured()) {
@@ -24,7 +34,17 @@ export async function POST(req: Request) {
     return NextResponse.json(badRequest(parsed.error), { status: 400 });
   }
 
-  if (!checkPassword(parsed.data.user, parsed.data.password)) {
+  const asked = parsed.data;
+  const demo = "demo" in asked;
+
+  if (demo && !demoLoginEnabled()) {
+    return NextResponse.json(
+      { error: "Demo sign in is switched off on this deployment." },
+      { status: 403 },
+    );
+  }
+
+  if (!demo && !checkPassword(asked.user, asked.password)) {
     // Deliberately vague, and the same for a wrong user or a wrong password.
     return NextResponse.json(
       { error: "That does not match." },

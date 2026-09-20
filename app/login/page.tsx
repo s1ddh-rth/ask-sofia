@@ -1,4 +1,4 @@
-import { studioConfigured } from "@/lib/session";
+import { demoLoginEnabled, studioConfigured } from "@/lib/session";
 import LoginForm from "./form";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,11 @@ export default async function LoginPage({
         open without this.
       </p>
       {studioConfigured() ? (
-        <LoginForm next={target} demoUser={process.env.STUDIO_USER ?? ""} />
+        <LoginForm
+          next={target}
+          demoUser={process.env.STUDIO_USER ?? ""}
+          demoEnabled={demoLoginEnabled()}
+        />
       ) : (
         <p className="mt-8 rounded-sm border border-rust/40 bg-rust/5 p-4 text-[15px] leading-relaxed">
           The studio login is not configured on this deployment. It needs

@@ -61,6 +61,14 @@ export async function isValid(token: string | undefined): Promise<boolean> {
   return Number.isFinite(expires) && expires > Date.now();
 }
 
+// One tap sign in for judging. The studio is half the product and nobody can
+// score what they cannot open, so the demo deployment lets anyone in as her
+// without being told a password. It is a deliberate switch rather than a
+// hole: set DEMO_LOGIN to false and only the password works.
+export function demoLoginEnabled(): boolean {
+  return studioConfigured() && process.env.DEMO_LOGIN !== "false";
+}
+
 export function checkPassword(user: string, password: string): boolean {
   const expectedUser = process.env.STUDIO_USER ?? "";
   const expectedPassword = process.env.STUDIO_PASSWORD ?? "";
