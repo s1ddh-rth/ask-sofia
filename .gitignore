@@ -58,3 +58,6 @@ next-env.d.ts
 # agent skill bundles
 /.agents
 /.claude/skills
+
+# the importer keeps a copy of the previous data file
+data/*.bak

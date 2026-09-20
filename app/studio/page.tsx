@@ -1,8 +1,15 @@
 import Link from "next/link";
-import { listQuestions, listShares, loadLive, supabaseConfigured } from "@/lib/store";
+import {
+  listPosts,
+  listQuestions,
+  listShares,
+  loadLive,
+  supabaseConfigured,
+} from "@/lib/store";
 import { suggest } from "@/lib/suggest/heuristics";
 import EditItem from "./edit";
 import Queue, { type Group } from "./queue";
+import Posts, { type PostView } from "./posts";
 import Suggestions from "./suggestions";
 
 export const dynamic = "force-dynamic";
@@ -12,10 +19,11 @@ export const metadata = {
 };
 
 export default async function StudioPage() {
-  const [data, questions, shares] = await Promise.all([
+  const [data, questions, shares, posts] = await Promise.all([
     loadLive(),
     listQuestions(),
     listShares(),
+    listPosts(),
   ]);
 
   const groups = new Map<string, Group>();
@@ -63,6 +71,26 @@ export default async function StudioPage() {
     opens: shares.reduce((n, s) => n + (s.opens ?? 0), 0),
     buyTaps: shares.reduce((n, s) => n + (s.buy_taps ?? 0), 0),
   };
+
+  const postViews: PostView[] = posts.map((post) => {
+    const perThousand =
+      post.views && post.views > 0
+        ? Math.round(((post.purchases ?? 0) / post.views) * 1000 * 100) / 100
+        : 0;
+    return {
+      id: post.id,
+      title: post.title,
+      views: post.views,
+      purchases: post.purchases,
+      item_ids: post.item_ids,
+      status: post.status,
+      perThousand,
+      quietWinner: perThousand >= data.rules.quietWinnerPer1000Views,
+      itemNames: (post.item_ids ?? []).map(
+        (id) => data.byId[id]?.name ?? id,
+      ),
+    };
+  });
 
   const suggestions = suggest({
     questions,
@@ -125,6 +153,9 @@ export default async function StudioPage() {
 
       <h2 className="label mt-10">What the logs suggest</h2>
       <Suggestions items={suggestions} />
+
+      <h2 className="label mt-10">Her posts</h2>
+      <Posts posts={postViews} threshold={data.rules.quietWinnerPer1000Views} />
 
       <h2 className="label mt-10">Change a piece</h2>
       <EditItem items={data.items} takeLabels={data.copy.takeLabels} />

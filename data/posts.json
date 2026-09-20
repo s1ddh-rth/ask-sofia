@@ -1,1 +1,7 @@
-[]
+[
+  { "id": "e03-1", "title": "3 outfits I'd wear to London Fashion Week", "views": 61000, "saves": 4800, "purchases": 218 },
+  { "id": "e03-2", "title": "Everything I wore in Copenhagen", "views": 184000, "saves": 7100, "purchases": 92 },
+  { "id": "e03-3", "title": "£100 outfit challenge", "views": 42000, "saves": 6900, "purchases": 311 },
+  { "id": "e03-4", "title": "The blazer I keep wearing", "views": 28000, "saves": 3800, "purchases": 427 },
+  { "id": "e03-5", "title": "Things I would never buy again", "views": 39000, "saves": 5300, "purchases": 0 }
+]

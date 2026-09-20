@@ -37,6 +37,7 @@ type Memory = {
   overrides: Map<string, OverrideAnswer>;
   patches: Patch[];
   shares: Map<string, ShareRow>;
+  posts: Map<string, PostRow>;
 };
 
 // The fallback. Lives for as long as the server instance does, which is all
@@ -53,6 +54,7 @@ const memory: Memory = (globalForMemory.__askSofiaMemory ??= {
   overrides: new Map(),
   patches: [],
   shares: new Map(),
+  posts: new Map(),
 });
 
 function newId(): string {
@@ -269,4 +271,34 @@ export async function listShares(): Promise<ShareRow[]> {
   const res = await rest("shares?select=*&order=created_at.desc&limit=200");
   if (!res) return [...memory.shares.values()];
   return (await res.json()) as ShareRow[];
+}
+
+export type PostRow = {
+  id: string;
+  title: string;
+  views: number | null;
+  saves: number | null;
+  purchases: number | null;
+  item_ids: string[] | null;
+  status: string;
+  ingested_at: string;
+};
+
+export async function savePosts(rows: Omit<PostRow, "ingested_at">[]) {
+  const res = await rest("posts", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify(rows),
+  });
+  if (!res) {
+    for (const row of rows) {
+      memory.posts.set(row.id, { ...row, ingested_at: new Date().toISOString() });
+    }
+  }
+}
+
+export async function listPosts(): Promise<PostRow[]> {
+  const res = await rest("posts?select=*&order=purchases.desc&limit=100");
+  if (!res) return [...memory.posts.values()];
+  return (await res.json()) as PostRow[];
 }
