@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { decide } from "@/lib/engine/decide";
+import { groupKey } from "@/lib/engine/keys";
 import { parseFallback } from "@/lib/parse/fallback";
 import type {
   Copy,
   Item,
+  Job,
+  OverrideAnswer,
   Rules,
   UserContext,
   Verdict,
@@ -20,6 +23,7 @@ type Props = {
   rules: Rules;
   copy: Copy;
   ownedTags: string[];
+  overrides: Record<string, OverrideAnswer>;
 };
 
 const WEARS: Wear[] = ["weekly", "few", "occasional"];
@@ -73,6 +77,7 @@ export default function Audience({
   rules,
   copy,
   ownedTags,
+  overrides,
 }: Props) {
   const ui = copy.ui as Record<string, string>;
   const wearOptions = copy.ui.wearOptions as Record<string, string>;
@@ -86,6 +91,9 @@ export default function Audience({
   const [question, setQuestion] = useState("");
   const [asked, setAsked] = useState<UserContext | null>(null);
   const [askedItem, setAskedItem] = useState<Item | null>(null);
+  const [job, setJob] = useState<Job>("should-buy");
+  const [questionId, setQuestionId] = useState<string | null>(null);
+  const [thanks, setThanks] = useState(false);
 
   const [barOpen, setBarOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -105,15 +113,54 @@ export default function Audience({
   );
 
   const subject = asked ? askedItem : item;
+  const key = groupKey(subject?.id ?? null, job);
 
   const verdict: Verdict | null = useMemo(() => {
     if (!touched && !asked) return null;
-    return decide({ item: subject, context, rules, copy, byId });
-  }, [touched, asked, subject, context, rules, copy, byId]);
+    return decide({
+      item: subject,
+      context,
+      rules,
+      copy,
+      byId,
+      override: overrides[key] ?? null,
+    });
+  }, [touched, asked, subject, context, rules, copy, byId, overrides, key]);
+
+  // Every ask is logged for her queue. The verdict on screen never waits on
+  // this, and a failed log changes nothing the person sees.
+  const logged = useRef<string>("");
+  useEffect(() => {
+    if (!verdict) return;
+    const signature = JSON.stringify({ key, context });
+    if (logged.current === signature) return;
+    const timer = setTimeout(() => {
+      logged.current = signature;
+      fetch("/api/ask", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          itemId: subject?.id ?? null,
+          job,
+          context,
+          rawText: asked ? question.trim() || null : null,
+          source: asked ? "fallback" : "taps",
+        }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d?.questionId) setQuestionId(d.questionId);
+        })
+        .catch(() => {});
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [verdict, key, context, subject, job, asked, question]);
 
   function reset() {
     setTouched(true);
     setAsked(null);
+    setJob("should-buy");
+    setThanks(false);
   }
 
   function toggleOwn(tag: string) {
@@ -127,6 +174,8 @@ export default function Audience({
     const text = question.trim();
     if (!text) return;
     const parsed = parseFallback(text, items, ownedTags);
+    setJob(parsed.job);
+    setThanks(false);
     setAsked({
       wear: parsed.wear ?? wear,
       budgetGBP: parsed.budgetGBP ?? budget,
@@ -144,6 +193,7 @@ export default function Audience({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           itemId: subject?.id ?? itemSlug,
+          job,
           context,
           verdict,
           note,
@@ -153,6 +203,20 @@ export default function Audience({
       setSent(res.ok ? "done" : "failed");
     } catch {
       setSent("failed");
+    }
+  }
+
+  async function thumbsDown() {
+    setThanks(true);
+    if (!questionId) return;
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ questionId, feedback: "down" }),
+      });
+    } catch {
+      // The thank you stands either way. Nothing here is worth an error.
     }
   }
 
@@ -260,7 +324,12 @@ export default function Audience({
       </div>
 
       {verdict ? (
-        <VerdictCard verdict={verdict} copy={copy} />
+        <VerdictCard
+          verdict={verdict}
+          copy={copy}
+          onThumbsDown={thumbsDown}
+          thanks={thanks}
+        />
       ) : null}
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-ink/10 bg-paper/95 backdrop-blur">
@@ -331,9 +400,13 @@ export default function Audience({
 function VerdictCard({
   verdict,
   copy,
+  onThumbsDown,
+  thanks,
 }: {
   verdict: Verdict;
   copy: Copy;
+  onThumbsDown: () => void;
+  thanks: boolean;
 }) {
   const ui = copy.ui as Record<string, string>;
   return (
@@ -389,10 +462,12 @@ function VerdictCard({
         </button>
         <button
           type="button"
+          onClick={onThumbsDown}
+          disabled={thanks}
           aria-label="This was not useful"
-          className="rounded-sm border border-ink/15 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted"
+          className="rounded-sm border border-ink/15 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted disabled:opacity-50"
         >
-          Not useful
+          {thanks ? "Noted" : "Not useful"}
         </button>
       </div>
     </section>

@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { loadData } from "@/lib/data/load";
+import { loadLive } from "@/lib/store";
 import Audience from "./audience";
 
-export function generateStaticParams() {
-  return loadData().items.map((item) => ({ item: item.id }));
-}
+// Overrides and patches have to be live, so this renders per request.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -12,7 +11,7 @@ export async function generateMetadata({
   params: Promise<{ item: string }>;
 }) {
   const { item: slug } = await params;
-  const item = loadData().byId[slug];
+  const item = (await loadLive()).byId[slug];
   return {
     title: item ? `${item.name} — Ask Sofia` : "Ask Sofia",
     description: item
@@ -34,7 +33,7 @@ export default async function ItemPage({
   params: Promise<{ item: string }>;
 }) {
   const { item: slug } = await params;
-  const { items, byId, rules, copy, ownedTags } = loadData();
+  const { items, byId, rules, copy, ownedTags, overrides } = await loadLive();
   const item = byId[slug] ?? null;
 
   return (
@@ -63,6 +62,7 @@ export default async function ItemPage({
         rules={rules}
         copy={copy}
         ownedTags={ownedTags}
+        overrides={overrides}
       />
     </main>
   );

@@ -37,3 +37,23 @@ budget rule is ever reached, so a £145 blazer worn weekly is a BUY even when
 the person said their budget was £100. That follows the spec as given. If the
 intent is that budget should beat a good cost per wear, it is one reordering
 plus one golden test.
+
+## Supabase is reached over plain fetch, not the client library
+
+`@supabase/supabase-js` would have been a new dependency and rule 8 says ask
+first. PostgREST over `fetch` is about forty lines, keeps nothing extra in the
+bundle, and every call falls back to in-memory state when the database is
+absent or unreachable. Swapping to the client library later is contained.
+
+## The audience page renders per request
+
+`/s/[item]` was statically prerendered until overrides existed. Sofia's
+confirmed answers have to reach the page the moment she saves one, so it now
+renders on each request and passes the merged data to the client. The engine
+still runs in the browser, so the page keeps working with no backend.
+
+## Asks are logged without the verdict waiting on it
+
+The verdict is computed in the browser and shown immediately. The log to
+`/api/ask` is fired afterwards, debounced, and a failure changes nothing the
+person sees. That keeps rule 7 true while still filling her queue.

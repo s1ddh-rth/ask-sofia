@@ -193,7 +193,4 @@ export function loadData(
   };
 }
 
-// group_key is item_id || ':' || job, and it is the only way answers group.
-export function groupKey(itemId: string | null, job: string): string {
-  return `${itemId ?? "unknown"}:${job}`;
-}
+export { groupKey } from "@/lib/engine/keys";
