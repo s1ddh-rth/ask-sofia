@@ -53,6 +53,8 @@ export type Rules = {
   maxPairings: number; // from "3 things I truly love"
   wearsPerMonth: { weekly: number; few: number; occasional: number };
   quietWinnerPer1000Views: number; // from E-03.4, used by the post ingest
+  suggestAfterRepeats: number; // how many repeats before a rule is proposed
+  reviewAfterThumbsDown: number; // how many thumbs down before a review
 };
 
 export type UserContext = {

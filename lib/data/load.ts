@@ -58,6 +58,8 @@ const RulesSchema = z.object({
     occasional: z.number().positive(),
   }),
   quietWinnerPer1000Views: z.number().positive(),
+  suggestAfterRepeats: z.number().int().positive(),
+  reviewAfterThumbsDown: z.number().int().positive(),
 });
 
 const SofiaDataSchema = z.object({

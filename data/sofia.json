@@ -9,7 +9,9 @@
       "few": 2,
       "occasional": 0.5
     },
-    "quietWinnerPer1000Views": 10
+    "quietWinnerPer1000Views": 10,
+    "suggestAfterRepeats": 3,
+    "reviewAfterThumbsDown": 2
   },
   "ownedTags": [
     "trainers",

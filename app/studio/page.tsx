@@ -1,6 +1,9 @@
 import Link from "next/link";
-import { listQuestions, loadLive, supabaseConfigured } from "@/lib/store";
+import { listQuestions, listShares, loadLive, supabaseConfigured } from "@/lib/store";
+import { suggest } from "@/lib/suggest/heuristics";
+import EditItem from "./edit";
 import Queue, { type Group } from "./queue";
+import Suggestions from "./suggestions";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +12,11 @@ export const metadata = {
 };
 
 export default async function StudioPage() {
-  const [data, questions] = await Promise.all([loadLive(), listQuestions()]);
+  const [data, questions, shares] = await Promise.all([
+    loadLive(),
+    listQuestions(),
+    listShares(),
+  ]);
 
   const groups = new Map<string, Group>();
   for (const q of questions) {
@@ -53,7 +60,16 @@ export default async function StudioPage() {
     escalated: questions.filter((q) => q.escalated).length,
     groups: ordered.length,
     answered: Object.keys(data.overrides).length,
+    opens: shares.reduce((n, s) => n + (s.opens ?? 0), 0),
+    buyTaps: shares.reduce((n, s) => n + (s.buy_taps ?? 0), 0),
   };
+
+  const suggestions = suggest({
+    questions,
+    overrides: data.overrides,
+    byId: data.byId,
+    rules: data.rules,
+  });
 
   return (
     <main className="mx-auto w-full max-w-2xl px-5 pb-20 pt-10">
@@ -69,12 +85,14 @@ export default async function StudioPage() {
         </Link>
       </div>
 
-      <dl className="mt-6 grid grid-cols-4 gap-2">
+      <dl className="mt-6 grid grid-cols-3 gap-2">
         {[
           ["Asked", totals.asked],
           ["For you", totals.escalated],
           ["Groups", totals.groups],
           ["Answered", totals.answered],
+          ["Shares opened", totals.opens],
+          ["Buy taps", totals.buyTaps],
         ].map(([label, value]) => (
           <div
             key={label as string}
@@ -104,6 +122,12 @@ export default async function StudioPage() {
       ) : (
         <Queue groups={ordered} />
       )}
+
+      <h2 className="label mt-10">What the logs suggest</h2>
+      <Suggestions items={suggestions} />
+
+      <h2 className="label mt-10">Change a piece</h2>
+      <EditItem items={data.items} takeLabels={data.copy.takeLabels} />
     </main>
   );
 }

@@ -175,3 +175,30 @@ email, nothing to notify.
 
 The snapshot carries its group key inside the stored JSON rather than in a new
 column, so this needed no schema change.
+
+## What counts as a repeated answer
+
+The brief says repeated identical answers in the same group become a proposed
+rule. Since an override is one per group by construction, the repetition being
+counted is how many people that one answer is standing in for. Once a group
+with a confirmed answer passes `suggestAfterRepeats`, currently three, the
+studio proposes writing it into the item so the engine can say it without her.
+
+The proposed patch is deliberately narrow. A repeated SKIP becomes a hard
+caveat in her words, a repeated WAIT becomes a soft one, a repeated BUY sets
+`buyAgain`. Anything the data cannot express faithfully proposes no patch at
+all rather than inventing one, and she sees the exact change before approving.
+
+The thumbs down heuristic proposes nothing on purpose. Two or more people
+saying a verdict was not useful tells us something is wrong but not what, so
+it opens the piece for her to look at instead of guessing at a fix.
+
+Both thresholds live in `rules` in `sofia.json`, because how many repeats
+count as a pattern is her judgement, not arithmetic.
+
+## A patch is dry run before it is written
+
+`/api/patch` replays the candidate patch against every patch already live and
+refuses it with the offending field named if the merged result would not
+validate. Nothing is written when it fails, so the previous state stays live,
+which is the behaviour the brief asks for and the loader tests cover.
