@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginForm({
@@ -12,7 +11,6 @@ export default function LoginForm({
   demoUser: string;
   demoEnabled: boolean;
 }) {
-  const router = useRouter();
   // Pre-filled on purpose. This is a demo account, and a judge should not
   // have to be told a password to see the half of the product that matters.
   const [user, setUser] = useState(demoUser);
@@ -36,8 +34,7 @@ export default function LoginForm({
         setState("failed");
         return;
       }
-      router.replace(next);
-      router.refresh();
+      window.location.assign(next);
     } catch {
       setError("Could not sign in. Try once more.");
       setState("failed");
@@ -60,8 +57,7 @@ export default function LoginForm({
         setState("failed");
         return;
       }
-      router.replace(next);
-      router.refresh();
+      window.location.assign(next);
     } catch {
       setError("Could not sign in. Try once more.");
       setState("failed");
