@@ -146,7 +146,11 @@ export default async function SharePage({
         </section>
       ) : null}
 
-      <BuyTap shareRef={ref} link={item?.link ?? null} />
+      <BuyTap
+        shareRef={ref}
+        link={item?.link ?? null}
+        itemId={item?.id ?? null}
+      />
 
       {item ? (
         <Link href={`/s/${item.id}`} className="label mt-6 inline-block">

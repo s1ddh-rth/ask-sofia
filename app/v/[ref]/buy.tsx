@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { track } from "@/lib/track";
 
 // A buy tap is worth counting whether or not she has a link on the item, so
 // the count happens either way and the link is only followed when there is
@@ -8,11 +9,21 @@ import { useState } from "react";
 export default function BuyTap({
   shareRef,
   link,
+  itemId,
 }: {
   shareRef: string;
   link: string | null;
+  itemId: string | null;
 }) {
   const [tapped, setTapped] = useState(false);
+
+  // Someone else opening the link is the event worth counting, because E-09
+  // puts a share behind 41% of purchases. The page already increments the
+  // share's own counter server side, but the decisions panel counts events,
+  // so it has to hear about it too.
+  useEffect(() => {
+    track({ kind: "share_opened", itemId, ref: shareRef });
+  }, [itemId, shareRef]);
 
   function count() {
     setTapped(true);

@@ -24,6 +24,10 @@ That gives three properties worth more than cleverness:
 - **Attributable.** Every reason on a verdict card is built from her own quotes and her own templates.
 - **Reversible.** Nothing reaches the live app without her confirming it, and every change is a timestamped patch.
 
+The evidence says the same thing from the other side. E-09 says 62% of her high value buyers never clicked her affiliate link and the median gap from saving to buying is 3.4 days, and E-10 says 7 of 9 buyers never clicked while every one of them had saved at least three looks and come back at least twice. The decision is taken over days, often shared with someone else, and completed somewhere she cannot see, so a click is the one moment that behaviour skips.
+
+That is why a follower can leave and come back with their shortlist and their questions still there and still no account, why a share carries her reasoning rather than a product, and why the only honest way to know whether a purchase happened is to ask once, anonymously, when they return. Her studio counts those answers under "Decisions you shaped", which is the number her affiliate dashboard cannot produce.
+
 ---
 
 ## Architecture
@@ -35,11 +39,13 @@ flowchart TB
         box["One question box<br/>not a chat thread"]
         card["Verdict card<br/>stamp · reasons · cost per wear"]
         bar["Pinned bar<br/>Still unsure? Ask Sofia herself"]
+        keep["Kept in their browser<br/>shortlist · their questions"]
     end
 
     subgraph server["Server routes"]
         ask["/api/ask<br/>parse · decide · log"]
         esc["/api/escalate"]
+        ev["/api/event<br/>anonymous, no account"]
         ans["/api/answer"]
         patch["/api/patch"]
     end
@@ -62,6 +68,7 @@ flowchart TB
 
     groq["Groq<br/>text to schema only"]
     fallback["fallback.ts<br/>keyword matcher"]
+    events[("events")]
 
     taps --> decide
     box --> ask
@@ -71,6 +78,10 @@ flowchart TB
     ask --> decide
     decide --> card
     card --> bar
+    card --> keep
+    keep --> ev
+    ev --> events
+    events --> studio
     bar --> esc
     esc --> studio
     login --> studio
@@ -90,7 +101,7 @@ flowchart TB
 
 The dashed boxes are the parts allowed to fail. Groq falls back to the keyword matcher, Supabase falls back to in-memory state, and the engine runs in the browser, so **every screen still works with both of them down.**
 
-Her desk is behind one demo login, and so is every route that writes on her behalf, which is `/api/answer`, `/api/patch` and `/api/ingest`. Everything the audience touches stays open.
+Her desk is behind one demo login, and so is every route that writes on her behalf, which is `/api/answer`, `/api/patch` and `/api/ingest`. Everything the audience touches stays open. Because the studio is half the product and nobody can score what they cannot open, `/login` also offers a one tap "Sign in as Sofia" for judges, which is a deliberate switch rather than a hole. Set `DEMO_LOGIN` to false and only the password works.
 
 ---
 
@@ -112,7 +123,7 @@ flowchart TD
     basic -->|yes| cheaper["WAIT<br/>points at the cheaper one"]
     basic -->|no| inv{"An investment?"}
     inv -->|"yes, no wear given"| esc
-    inv -->|yes| cpw{"Cost per wear<br/>under £4?"}
+    inv -->|yes| cpw{"Cost per wear<br/>£4 or under?"}
     cpw -->|yes| buy["BUY"]
     cpw -->|no| wait2["WAIT"]
     inv -->|no| stmt{"A statement piece<br/>with nowhere to go?"}
