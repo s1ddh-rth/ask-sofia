@@ -96,6 +96,9 @@ export default function Audience({
   const [remote, setRemote] = useState<Verdict | null>(null);
   const [asking, setAsking] = useState(false);
   const [thanks, setThanks] = useState(false);
+  const [shareLink, setShareLink] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [backLink, setBackLink] = useState<string | null>(null);
 
   const [barOpen, setBarOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -170,6 +173,7 @@ export default function Audience({
     setJob("should-buy");
     setThanks(false);
     setRemote(null);
+    setShareLink(null);
   }
 
   function toggleOwn(tag: string) {
@@ -236,9 +240,45 @@ export default function Audience({
           rawText: question.trim() || null,
         }),
       });
-      setSent(res.ok ? "done" : "failed");
+      if (res.ok) {
+        const d = await res.json().catch(() => null);
+        if (d?.path) setBackLink(d.path);
+        setSent("done");
+      } else {
+        setSent("failed");
+      }
     } catch {
       setSent("failed");
+    }
+  }
+
+  // The share is a snapshot of this verdict, not a link to this page, because
+  // the answer was theirs and the page would give the next person a different
+  // one.
+  async function share() {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      const res = await fetch("/api/share", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ itemId: subject?.id ?? null, job, context }),
+      });
+      if (!res.ok) throw new Error("share failed");
+      const d = await res.json();
+      const url = `${window.location.origin}${d.path}`;
+      setShareLink(url);
+      if (navigator.share) {
+        await navigator
+          .share({ title: "Sofia's verdict", url })
+          .catch(() => {});
+      } else {
+        await navigator.clipboard?.writeText(url).catch(() => {});
+      }
+    } catch {
+      setShareLink(null);
+    } finally {
+      setSharing(false);
     }
   }
 
@@ -366,6 +406,9 @@ export default function Audience({
           copy={copy}
           onThumbsDown={thumbsDown}
           thanks={thanks}
+          onShare={share}
+          sharing={sharing}
+          shareLink={shareLink}
         />
       ) : null}
 
@@ -375,10 +418,22 @@ export default function Audience({
             <div>
               <p className="label">{ui.askBarTitle}</p>
               {sent === "done" ? (
-                <p className="mt-2 text-[15px]">
-                  Sent to Sofia with your answers and the verdict you got. She
-                  replies in her studio.
-                </p>
+                <div className="mt-2">
+                  <p className="text-[15px]">
+                    Sent to Sofia with your answers and the verdict you got.
+                  </p>
+                  {backLink ? (
+                    <p className="mt-1 text-[15px]">
+                      Keep this link and her answer will appear on it.{" "}
+                      <a
+                        href={backLink}
+                        className="break-all font-mono text-[11px] tracking-[0.05em] text-rust underline"
+                      >
+                        {backLink}
+                      </a>
+                    </p>
+                  ) : null}
+                </div>
               ) : (
                 <>
                   <textarea
@@ -439,11 +494,17 @@ function VerdictCard({
   copy,
   onThumbsDown,
   thanks,
+  onShare,
+  sharing,
+  shareLink,
 }: {
   verdict: Verdict;
   copy: Copy;
   onThumbsDown: () => void;
   thanks: boolean;
+  onShare: () => void;
+  sharing: boolean;
+  shareLink: string | null;
 }) {
   const ui = copy.ui as Record<string, string>;
   return (
@@ -493,9 +554,11 @@ function VerdictCard({
       <div className="mt-5 flex items-center gap-2 border-t border-ink/10 pt-4">
         <button
           type="button"
-          className="rounded-sm border border-ink/15 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted"
+          onClick={onShare}
+          disabled={sharing}
+          className="rounded-sm border border-ink/15 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted disabled:opacity-60"
         >
-          Share
+          {sharing ? "..." : shareLink ? "Link copied" : "Share"}
         </button>
         <button
           type="button"
@@ -507,6 +570,12 @@ function VerdictCard({
           {thanks ? "Noted" : "Not useful"}
         </button>
       </div>
+
+      {shareLink ? (
+        <p className="mt-3 break-all font-mono text-[11px] tracking-[0.05em] text-muted">
+          {shareLink}
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -156,3 +156,22 @@ A scoring model that weighed all the signals together and returned a
 confidence was considered and dropped. It would have made every verdict
 unexplainable, and "Sofia says soft but pills" is worth more to a follower
 than "0.31 confidence". Ordered rules make the card write itself.
+
+## A shared link is a snapshot, and it doubles as the way back
+
+`/api/share` writes the engine's verdict at the moment of sharing rather than
+a link to the page. The verdict was personal to one wardrobe and one budget,
+so sending someone the live page would show them a different answer to the one
+being talked about, and the snapshot also survives Sofia later changing the
+item. The route derives the verdict itself, so a shared link cannot be made to
+say something the engine never said.
+
+The same mechanism closes the escalation loop. Nothing is collected about the
+person asking, and `sanitiseText` strips emails and phone numbers before
+anything is stored, so there is no way to write back to them. Instead an
+escalation hands back a link. It shows the verdict they had, and once Sofia
+confirms an answer for that group the link shows her words too. No account, no
+email, nothing to notify.
+
+The snapshot carries its group key inside the stored JSON rather than in a new
+column, so this needed no schema change.

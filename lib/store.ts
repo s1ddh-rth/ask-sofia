@@ -36,6 +36,7 @@ type Memory = {
   questions: QuestionRow[];
   overrides: Map<string, OverrideAnswer>;
   patches: Patch[];
+  shares: Map<string, ShareRow>;
 };
 
 // The fallback. Lives for as long as the server instance does, which is all
@@ -51,6 +52,7 @@ const memory: Memory = (globalForMemory.__askSofiaMemory ??= {
   questions: [],
   overrides: new Map(),
   patches: [],
+  shares: new Map(),
 });
 
 function newId(): string {
@@ -193,4 +195,78 @@ export async function loadLive(): Promise<LoadedData> {
     getOverrides(),
   ]);
   return loadData({ patches, overrides });
+}
+
+export type ShareRow = {
+  ref: string;
+  item_id: string | null;
+  // The snapshot. Shape is ours, so it carries the group key as well as the
+  // verdict, which is what lets a shared link show her answer once she gives
+  // one without needing a column for it.
+  verdict: { verdict: Verdict; groupKey: string; context?: UserContext } | null;
+  opens: number;
+  buy_taps: number;
+  created_at: string;
+};
+
+// Short, unambiguous, no lookalike characters.
+const ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+
+export function newRef(): string {
+  const bytes = new Uint8Array(8);
+  globalThis.crypto.getRandomValues(bytes);
+  return [...bytes].map((b) => ALPHABET[b % ALPHABET.length]).join("");
+}
+
+export async function createShare(
+  row: Omit<ShareRow, "opens" | "buy_taps" | "created_at">,
+): Promise<ShareRow> {
+  const full: ShareRow = {
+    ...row,
+    opens: 0,
+    buy_taps: 0,
+    created_at: new Date().toISOString(),
+  };
+  const res = await rest("shares", {
+    method: "POST",
+    body: JSON.stringify({
+      ref: full.ref,
+      item_id: full.item_id,
+      verdict: full.verdict,
+    }),
+  });
+  if (!res) memory.shares.set(full.ref, full);
+  return full;
+}
+
+export async function getShare(ref: string): Promise<ShareRow | null> {
+  const res = await rest(
+    `shares?ref=eq.${encodeURIComponent(ref)}&select=*&limit=1`,
+  );
+  if (!res) return memory.shares.get(ref) ?? null;
+  const [row] = (await res.json()) as ShareRow[];
+  return row ?? null;
+}
+
+// Counting an open or a buy tap must never be able to fail a page render.
+export async function countShare(
+  ref: string,
+  field: "opens" | "buy_taps",
+): Promise<void> {
+  const current = await getShare(ref);
+  if (!current) return;
+  const res = await rest(`shares?ref=eq.${encodeURIComponent(ref)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ [field]: (current[field] ?? 0) + 1 }),
+  });
+  if (!res) {
+    const row = memory.shares.get(ref);
+    if (row) row[field] = (row[field] ?? 0) + 1;
+  }
+}
+
+export async function listShares(): Promise<ShareRow[]> {
+  const res = await rest("shares?select=*&order=created_at.desc&limit=200");
+  if (!res) return [...memory.shares.values()];
+  return (await res.json()) as ShareRow[];
 }

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { badRequest, ContextSchema, JobSchema, sanitiseText, toContext } from "@/lib/api";
 import { groupKey } from "@/lib/data/load";
 import { decide } from "@/lib/engine/decide";
-import { loadLive, logQuestion } from "@/lib/store";
+import { createShare, loadLive, logQuestion, newRef } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -54,5 +54,21 @@ export async function POST(req: Request) {
     note: input.note ? sanitiseText(input.note) : null,
   });
 
-  return NextResponse.json({ ok: true, groupKey: key, questionId: row.id });
+  // Nothing is collected about the person, so there is no way to write back
+  // to them. Instead they get a link to return to. It shows the verdict they
+  // had, and her answer once she has given one.
+  const ref = newRef();
+  await createShare({
+    ref,
+    item_id: itemId,
+    verdict: { verdict, groupKey: key, context },
+  });
+
+  return NextResponse.json({
+    ok: true,
+    groupKey: key,
+    questionId: row.id,
+    ref,
+    path: `/v/${ref}`,
+  });
 }
