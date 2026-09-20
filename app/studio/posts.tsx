@@ -23,35 +23,73 @@ export default function Posts({
   threshold: number;
 }) {
   const router = useRouter();
-  const [syncing, setSyncing] = useState(false);
+  const [running, setRunning] = useState<"backfill" | "nightly" | null>(null);
+  const [lastRun, setLastRun] = useState<string | null>(null);
 
-  async function sync() {
-    setSyncing(true);
+  async function run(mode: "backfill" | "nightly") {
+    setRunning(mode);
     try {
-      await fetch("/api/ingest", { method: "POST" });
+      const res = await fetch("/api/ingest", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(
+          mode === "backfill"
+            ? { mode: "backfill", months: 12 }
+            : { mode: "nightly", since: lastRun },
+        ),
+      });
+      if (res.ok) {
+        const d = await res.json().catch(() => null);
+        if (d?.ranAt) setLastRun(d.ranAt);
+      }
       router.refresh();
     } catch {
       // Nothing here is worth an error in front of her.
     } finally {
-      setSyncing(false);
+      setRunning(null);
     }
   }
 
   return (
     <div className="mt-3">
-      <button
-        type="button"
-        onClick={sync}
-        disabled={syncing}
-        className="rounded-sm bg-ink px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-card disabled:opacity-40"
-      >
-        {syncing ? "Syncing" : "Sync posts"}
-      </button>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <button
+            type="button"
+            onClick={() => run("backfill")}
+            disabled={running !== null}
+            className="w-full rounded-sm bg-ink px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-card disabled:opacity-40"
+          >
+            {running === "backfill" ? "Running" : "Run 12-month backfill"}
+          </button>
+          <p className="label mt-2 leading-relaxed">
+            In production this runs once when she connects her account, and
+            pulls the last twelve months, which is as far back as the metrics
+            go.
+          </p>
+        </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => run("nightly")}
+            disabled={running !== null}
+            className="w-full rounded-sm border border-ink/20 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink disabled:opacity-40"
+          >
+            {running === "nightly" ? "Running" : "Run nightly sync"}
+          </button>
+          <p className="label mt-2 leading-relaxed">
+            In production this runs every night, taking anything new plus the
+            last two days again, because insights can lag by 48 hours.
+          </p>
+        </div>
+      </div>
 
       {posts.length === 0 ? (
         <p className="mt-3 rounded-sm border border-ink/10 bg-card px-4 py-6 text-[15px] text-muted">
-          Nothing synced yet. This reads her posts and flags the ones selling
-          quietly, at {threshold} or more purchases per thousand views.
+          Nothing synced yet. Either run reads her posts and flags the ones
+          selling quietly, at {threshold} or more purchases per thousand
+          views. Everything it finds is a draft until you confirm which piece
+          it shows.
         </p>
       ) : (
         <ul className="mt-3 space-y-2">

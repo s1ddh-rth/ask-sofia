@@ -3,7 +3,7 @@ import fixture from "@/data/posts.json";
 
 const posts = fixture.posts;
 import { loadData } from "@/lib/data/load";
-import { ingestPosts } from "@/lib/ingest/posts";
+import { ingest, ingestPosts } from "@/lib/ingest/posts";
 
 const { items, rules } = loadData();
 const out = ingestPosts(posts, items, rules);
@@ -54,5 +54,81 @@ describe("post ingest", () => {
 
   it("is deterministic", () => {
     expect(ingestPosts(posts, items, rules)).toEqual(out);
+  });
+});
+
+describe("the two ingest modes", () => {
+  // The fixture dates run from Nov 2025 to Aug 2026.
+  const NOW = "2026-09-20T12:00:00.000Z";
+
+  it("a twelve month backfill takes the posts inside the window", () => {
+    const r = ingest(posts, items, rules, { mode: "backfill", months: 12, now: NOW });
+    expect(r.mode).toBe("backfill");
+    expect(r.window.from).toBe("2025-09-20");
+    expect(r.window.to).toBe("2026-09-20");
+    // Every fixture post falls inside twelve months of that date.
+    expect(r.posts).toHaveLength(5);
+    expect(r.posts.every((p) => p.reason === "in-window")).toBe(true);
+  });
+
+  it("a shorter backfill leaves the older posts out", () => {
+    // Three months back from 20 Sep is 20 Jun, so only the July and August
+    // posts survive.
+    const r = ingest(posts, items, rules, { mode: "backfill", months: 3, now: NOW });
+    expect(r.posts.map((p) => p.id)).toEqual(["e03-4", "e03-5"]);
+  });
+
+  it("a one month backfill leaves all but the newest out", () => {
+    const r = ingest(posts, items, rules, { mode: "backfill", months: 1, now: NOW });
+    expect(r.posts.map((p) => p.id)).toEqual(["e03-5"]);
+  });
+
+  it("still flags only the blazer post, whichever mode found it", () => {
+    const back = ingest(posts, items, rules, { mode: "backfill", now: NOW });
+    expect(back.quietWinners).toEqual(["e03-4"]);
+  });
+
+  it("a nightly run takes only what is new since the last one", () => {
+    const r = ingest(posts, items, rules, {
+      mode: "nightly",
+      since: "2026-06-01",
+      now: NOW,
+    });
+    expect(r.mode).toBe("nightly");
+    expect(r.posts.map((p) => p.id)).toEqual(["e03-4", "e03-5"]);
+    expect(r.posts.every((p) => p.reason === "new-since-last-run")).toBe(true);
+  });
+
+  it("a nightly run refreshes the last two days, because insights lag", () => {
+    // Pretend the newest post went up yesterday and was already ingested.
+    const recent = posts.map((p) =>
+      p.id === "e03-5" ? { ...p, postedAt: "2026-09-19" } : p,
+    );
+    const r = ingest(recent, items, rules, {
+      mode: "nightly",
+      since: "2026-09-20",
+      now: NOW,
+    });
+    expect(r.refreshed).toEqual(["e03-5"]);
+    expect(r.posts).toHaveLength(1);
+  });
+
+  it("a first nightly run with no previous run takes everything dated", () => {
+    const r = ingest(posts, items, rules, { mode: "nightly", since: null, now: NOW });
+    expect(r.posts).toHaveLength(5);
+  });
+
+  it("never drops an undated post from a backfill", () => {
+    const undated = [{ id: "x", title: "No date", views: 1000, saves: 0, purchases: 20 }];
+    const r = ingest(undated, items, rules, { mode: "backfill", now: NOW });
+    expect(r.posts).toHaveLength(1);
+    expect(r.posts[0].quietWinner).toBe(true);
+  });
+
+  it("is deterministic when the clock is given", () => {
+    const opts = { mode: "backfill" as const, now: NOW };
+    expect(ingest(posts, items, rules, opts)).toEqual(
+      ingest(posts, items, rules, opts),
+    );
   });
 });

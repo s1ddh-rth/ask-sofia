@@ -128,6 +128,28 @@ export default async function StudioPage() {
         ))}
       </dl>
 
+      <h2 className="label mt-10">Most asked</h2>
+      <ol className="mt-3 space-y-1">
+        {ordered.slice(0, 5).map((g, i) => (
+          <li
+            key={g.key}
+            className="flex items-baseline justify-between gap-3 border-b border-ink/10 pb-1 text-[15px]"
+          >
+            <span>
+              <span className="font-mono text-[11px] text-muted">{i + 1}. </span>
+              {g.itemName}
+              <span className="label"> {g.job}</span>
+            </span>
+            <span className="shrink-0 font-heading text-xl font-bold">
+              {g.count}
+            </span>
+          </li>
+        ))}
+        {ordered.length === 0 ? (
+          <li className="text-[15px] text-muted">Nothing asked yet.</li>
+        ) : null}
+      </ol>
+
       <h2 className="label mt-10">The queue, grouped</h2>
 
       {ordered.length === 0 ? (
