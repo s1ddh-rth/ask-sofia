@@ -1,3 +1,4 @@
+import Link from "next/link";
 import fixture from "@/data/posts.json";
 import { ingestPosts } from "@/lib/ingest/posts";
 import { takeLabel } from "@/lib/engine/take";
@@ -58,6 +59,20 @@ export default async function Home() {
       </p>
 
       <Browse cards={cards} copy={ui} />
+
+      {/* Quiet on purpose. A follower reads it and moves on, and anyone
+          looking for her side of the product finds it without guessing a
+          URL. It is not a call to action competing with the pieces. */}
+      <footer className="mt-14 border-t border-ink/10 pt-5">
+        <p className="label">{ui.studioPrompt}</p>
+        <Link
+          href="/studio"
+          className="font-heading mt-1 inline-block text-xl font-semibold uppercase text-rust"
+        >
+          {ui.studioLink} &rarr;
+        </Link>
+        <p className="mt-1 text-[13px] text-muted">{ui.studioNote}</p>
+      </footer>
     </main>
   );
 }
