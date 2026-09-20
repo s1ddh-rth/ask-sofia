@@ -62,8 +62,13 @@ export default async function StudioPage() {
       existing.questions.push(q.raw_text);
   }
 
+  // The queue puts the ones asking for her first.
   const ordered = [...groups.values()].sort(
     (a, b) => b.escalated - a.escalated || b.count - a.count,
+  );
+  // Most asked is its own ordering, purely by how many people asked.
+  const byVolume = [...groups.values()].sort(
+    (a, b) => b.count - a.count || a.itemName.localeCompare(b.itemName),
   );
 
   const totals = {
@@ -116,14 +121,12 @@ export default async function StudioPage() {
         </Link>
       </div>
 
-      <dl className="mt-6 grid grid-cols-3 gap-2">
+      <dl className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
           ["Asked", totals.asked],
           ["For you", totals.escalated],
           ["Groups", totals.groups],
           ["Answered", totals.answered],
-          ["Shares opened", totals.opens],
-          ["Buy taps", totals.buyTaps],
         ].map(([label, value]) => (
           <div
             key={label as string}
@@ -138,11 +141,15 @@ export default async function StudioPage() {
       </dl>
 
       <h2 className="label mt-10">Decisions you shaped</h2>
-      <Decisions events={events} />
+      <Decisions
+        events={events}
+        shareOpens={totals.opens}
+        buyTaps={totals.buyTaps}
+      />
 
       <h2 className="label mt-10">Most asked</h2>
       <ol className="mt-3 space-y-1">
-        {ordered.slice(0, 5).map((g, i) => (
+        {byVolume.slice(0, 5).map((g, i) => (
           <li
             key={g.key}
             className="flex items-baseline justify-between gap-3 border-b border-ink/10 pb-1 text-[15px]"
@@ -157,7 +164,7 @@ export default async function StudioPage() {
             </span>
           </li>
         ))}
-        {ordered.length === 0 ? (
+        {byVolume.length === 0 ? (
           <li className="text-[15px] text-muted">Nothing asked yet.</li>
         ) : null}
       </ol>

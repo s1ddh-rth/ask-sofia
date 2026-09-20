@@ -15,7 +15,18 @@ const CHECKIN_LABELS: Record<string, string> = {
   "still-deciding": "Still deciding",
 };
 
-export default function Decisions({ events }: { events: EventRow[] }) {
+export default function Decisions({
+  events,
+  shareOpens,
+  buyTaps,
+}: {
+  events: EventRow[];
+  // Counted on the shares table itself, server side, so it is the number
+  // that has always been right rather than the one that started when event
+  // tracking was added.
+  shareOpens: number;
+  buyTaps: number;
+}) {
   const count = (kind: string) => events.filter((e) => e.kind === kind).length;
 
   const checkins = events.filter((e) => e.kind === "checkin");
@@ -31,12 +42,13 @@ export default function Decisions({ events }: { events: EventRow[] }) {
     ["Saved", count("saved")],
     ["Came back", count("returned")],
     ["Shared", count("shared")],
-    ["Shares opened", count("share_opened")],
+    ["Shares opened", shareOpens],
+    ["Buy taps", buyTaps],
   ] as const;
 
   return (
     <div className="mt-3 rounded-sm border border-ink/10 bg-card p-4">
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-6">
         {headline.map(([label, value]) => (
           <div key={label}>
             <dt className="label">{label}</dt>
