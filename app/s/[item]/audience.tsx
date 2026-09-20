@@ -57,12 +57,14 @@ function Chip({
 function Section({
   label,
   children,
+  first,
 }: {
   label: string;
   children: React.ReactNode;
+  first?: boolean;
 }) {
   return (
-    <div className="mt-6">
+    <div className={first ? "" : "mt-6"}>
       <p className="label">{label}</p>
       <div className="mt-2 flex flex-wrap gap-2">{children}</div>
     </div>
@@ -299,24 +301,7 @@ export default function Audience({
 
   return (
     <>
-      {item ? (
-        <section className="mt-6 rounded-sm border border-ink/10 bg-card p-5">
-          <p className="label flex items-baseline gap-2">
-            <span>{ui.takeLabel}</span>
-            {item.evidence[0] ? (
-              <span className="text-[9px] text-muted/70">
-                {item.evidence[0]}
-              </span>
-            ) : null}
-          </p>
-          <p className="font-heading mt-1 text-2xl font-semibold uppercase text-rust">
-            {copy.takeLabels[item.verdictType]}
-          </p>
-          <p className="mt-3 text-lg italic leading-snug">
-            &ldquo;{item.quote}&rdquo;
-          </p>
-        </section>
-      ) : (
+      {item ? null : (
         <section className="mt-6 rounded-sm border border-ink/10 bg-card p-5">
           <p className="label">{ui.takeLabel}</p>
           <p className="mt-2 text-[15px] leading-relaxed">
@@ -328,7 +313,7 @@ export default function Audience({
 
       {item ? (
         <>
-          <Section label={ui.wearLabel}>
+          <Section label={ui.wearLabel} first>
             {WEARS.map((w) => (
               <Chip
                 key={w}
@@ -421,7 +406,7 @@ export default function Audience({
       ) : null}
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-ink/10 bg-paper/95 backdrop-blur">
-        <div className="mx-auto w-full max-w-md px-5 py-3">
+        <div className="mx-auto w-full max-w-5xl px-5 py-3">
           {barOpen ? (
             <div>
               <p className="label">{ui.askBarTitle}</p>
@@ -499,10 +484,10 @@ export default function Audience({
               onClick={() => setBarOpen(true)}
               className="flex w-full items-center justify-between rounded-sm bg-rust px-4 py-3 text-card"
             >
-              <span className="font-heading text-lg font-semibold uppercase">
+              <span className="font-heading text-base font-semibold uppercase leading-tight sm:text-lg">
                 {ui.askBarTitle}
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-[0.1em]">
+              <span className="shrink-0 pl-3 font-mono text-[11px] uppercase tracking-[0.1em]">
                 {ui.askBarAction}
               </span>
             </button>
