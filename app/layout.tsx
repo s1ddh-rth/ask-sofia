@@ -16,6 +16,10 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
+export const viewport = {
+  themeColor: "#EDE8E1",
+};
+
 export const metadata: Metadata = {
   title: "Ask Sofia",
   description: "Sofia's judgement on whether a piece is worth it for you.",

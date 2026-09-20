@@ -38,7 +38,13 @@ Meta requires messaging apps to offer an escalation path to a real person, which
 
 Whether creator product tags are readable through the API, and TikTok's equivalent APIs. Check both before building on them.
 
+## Scheduling in production
+
+Vercel crons are fixed in vercel.json and on the Hobby plan run at most once a day, so her settings can't rewrite the schedule directly. A heartbeat calls /api/cron/heartbeat and the route reads her settings to decide whether a sync is due. Supabase pg_cron with pg_net is the planned heartbeat, since it can call the route on any schedule and be rescheduled from SQL when she saves settings. Instagram long-lived tokens last 60 days and are refreshed automatically before they expire.
+
 ## Beyond today
+
+Sofia logs in through Supabase Auth with password reset, replacing the single demo login. The platform, not each creator, owns the Meta and TikTok developer apps and goes through their reviews once, and creators only ever tap Connect.
 
 The full 36-item wardrobe. TikTok alongside Instagram.
 

@@ -54,6 +54,7 @@ next-env.d.ts
 *.tiff
 *.bmp
 !app/favicon.ico
+!app/apple-icon.png
 
 # agent skill bundles
 /.agents
