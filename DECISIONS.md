@@ -324,3 +324,20 @@ have rendered as hers.
 drops the ones that fail. The engine then falls back to its own verdict for
 that group, which is the safe direction to fail in, since the worst case is
 a follower seeing the rule based answer instead of her words.
+
+## Her take is derived the same way the verdict is
+
+The grey knit is an `investment` piece in the data, exactly as the brief
+specified, and it also carries a hard caveat, "soft but pills". Rule 3 says a
+hard caveat beats the item's type, so the engine returns SKIP for it in every
+context. The card, though, read its label straight off `verdictType` and so
+announced "Worth the money" directly above a verdict of "Skip it".
+
+The engine was right and the label was lying. Two different things were
+deciding what to show. `lib/engine/take.ts` now derives the label the same way
+the verdict is derived, so a piece that can only ever be skipped says so.
+
+A test sweeps all eight pieces across every context the taps can produce and
+fails if any label contradicts the set of verdicts that piece can return, in
+either direction. The grey knit was the only one, but the test is there so the
+next item added cannot reintroduce it quietly.

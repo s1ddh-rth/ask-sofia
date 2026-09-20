@@ -1,5 +1,6 @@
 import fixture from "@/data/posts.json";
 import { ingestPosts } from "@/lib/ingest/posts";
+import { takeLabel } from "@/lib/engine/take";
 import { listQuestions, loadLive } from "@/lib/store";
 import Browse, { type Card } from "./browse";
 
@@ -39,7 +40,7 @@ export default async function Home() {
     price: item.price,
     quote: item.quote,
     evidence: item.evidence[0] ?? "",
-    takeLabel: copy.takeLabels[item.verdictType],
+    takeLabel: takeLabel(item, copy),
     addedAt: item.addedAt ?? null,
     image: item.image ?? null,
     asked: asked.get(item.id) ?? 0,

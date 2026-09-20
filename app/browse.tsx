@@ -165,6 +165,9 @@ export default function Browse({
                       </span>
                     ) : null}
                   </p>
+                  <p className="mt-1 font-heading text-base font-semibold uppercase leading-tight text-rust">
+                    {c.takeLabel}
+                  </p>
                   <p className="mt-1 text-[14px] italic leading-snug text-ink/80">
                     &ldquo;{c.quote}&rdquo;
                   </p>

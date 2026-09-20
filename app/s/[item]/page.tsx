@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import fixture from "@/data/posts.json";
 import { ingestPosts } from "@/lib/ingest/posts";
+import { takeLabel } from "@/lib/engine/take";
 import { loadLive } from "@/lib/store";
 import Audience from "./audience";
 
@@ -87,7 +88,7 @@ export default async function ItemPage({
                 priority
               />
               <span className="stamp absolute right-3 top-3 bg-paper/80 px-2 py-1 text-sm backdrop-blur">
-                {copy.takeLabels[item.verdictType]}
+                {takeLabel(item, copy)}
               </span>
               <span className="absolute bottom-3 left-3 rounded-sm bg-ink px-2 py-1 font-mono text-[11px] tracking-[0.08em] text-card">
                 £{item.price}
