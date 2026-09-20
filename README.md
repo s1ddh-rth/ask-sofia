@@ -24,7 +24,7 @@ That gives three properties worth more than cleverness:
 - **Attributable.** Every reason on a verdict card is built from her own quotes and her own templates.
 - **Reversible.** Nothing reaches the live app without her confirming it, and every change is a timestamped patch.
 
-The evidence says the same thing from the other side. E-09 says 62% of her high value buyers never clicked her affiliate link and the median gap from saving to buying is 3.4 days, and E-10 says 7 of 9 buyers never clicked while every one of them had saved at least three looks and come back at least twice. The decision is taken over days, often shared with someone else, and completed somewhere she cannot see, so a click is the one moment that behaviour skips.
+The evidence points at a second thing, which is where the decision actually happens. E-09 says 62% of her high value buyers never clicked her affiliate link and the median gap from saving to buying is 3.4 days, and E-10 says 7 of 9 buyers never clicked while every one of them had saved at least three looks and come back at least twice. The decision is taken over days, often shared with someone else, and completed somewhere she cannot see, so a click is the one moment that behaviour skips.
 
 That is why a follower can leave and come back with their shortlist and their questions still there and still no account, why a share carries her reasoning rather than a product, and why the only honest way to know whether a purchase happened is to ask once, anonymously, when they return. Her studio counts those answers under "Decisions you shaped", which is the number her affiliate dashboard cannot produce.
 
@@ -141,6 +141,8 @@ flowchart TD
 
 Pairings are then the intersection of what she pairs it with and what they own, capped at three, because she only ever names three things she truly loves.
 
+Her take label at the top of the card is derived by `lib/engine/take.ts` from the same facts the verdict uses, not read straight off the item's type. The grey knit is an `investment` piece carrying a hard caveat, so the engine can only ever skip it, and the label has to say so rather than announcing "Worth the money" above "Skip it".
+
 **Paid status is attached after the verdict is decided and no rule can read it.** A paid item and an identical unpaid one get the same call. There is a test that proves it.
 
 ---
@@ -168,6 +170,8 @@ flowchart LR
 - **The heuristics** propose. One confirmed answer standing in for three or more people becomes a proposed rule, and a verdict with two or more thumbs down goes to review. Both counts live in `sofia.json`, because how many repeats make a pattern is her judgement. They are arithmetic, not a model, so she can audit why something was suggested.
 - **She decides.** Groq may draft the wording of a suggestion, but the heuristics choose what gets suggested and Sofia chooses what goes live.
 
+A patch may only set nine named fields, which are `quote`, `price`, `stock`, `verdictType`, `caveat`, `cheaperOk`, `seasonNote`, `fitNote` and `pairsWith`. Anything else is refused whole with the field named, and the check runs both at the route and again when patches are read back out of the database. Two things follow from that list. A patch cannot create a new piece, because a new piece needs a name and `name` is not on it, so adding one is an edit to `sofia.json` through the importer. And a repeated BUY proposes no patch, because nothing left on the list says "she would buy it again", so the studio says why rather than inventing a field to write.
+
 **There is no learned model and no automatic learning from user behaviour.** Sofia is the model. The app is the inference engine, and escalation is how it says "I do not know" instead of inventing an answer.
 
 ---
@@ -186,8 +190,9 @@ It runs with an empty `.env.local`. Groq drops to the keyword matcher and Supaba
 | --- | --- |
 | `npm run dev` | Local dev server |
 | `npm run build` | The production build, the same one Vercel runs on every push |
-| `npm test` | Engine, loader, parser, ingest, suggestion and login tests |
+| `npm test` | Engine, loader, parser, ingest, suggestions, take labels, tap combinations and login, 104 tests over 8 files |
 | `npm run eval` | Scores the parser against the twelve real DMs and two added cases |
+| `npm run lint` | ESLint over the app |
 | `npm run seed` | Demo data so the studio is not empty |
 | `npm run reset` | Clears the demo state and seeds it again |
 | `npm run import -- file.csv` | Merges new items into `sofia.json` |
@@ -203,8 +208,11 @@ It runs with an empty `.env.local`. Groq drops to the keyword matcher and Supaba
 | `STUDIO_USER` | no | The one demo studio login |
 | `STUDIO_PASSWORD` | yes | Its password |
 | `SESSION_SECRET` | yes | Signs the studio session cookie |
+| `DEMO_LOGIN` | no | Leaves the one tap "Sign in as Sofia" on. Set it to `false` to require the password |
 
-Every secret is read on the server only, never in the browser. Every table has row level security on with no policies, so the publishable key is denied on all five and only the service role gets through.
+Every secret is read on the server only, never in the browser. Every table has row level security on with no policies, so the publishable key is denied on all six and only the service role gets through.
+
+`/api/health` reports what is wired up on a deploy, which is whether storage is Supabase or memory and whether Groq has a key and a model. It never reports whether a key is valid and never any part of one.
 
 ---
 
@@ -212,8 +220,11 @@ Every secret is read on the server only, never in the browser. Every table has r
 
 ```
 data/sofia.json            items, rules, thresholds, quotes, UI copy, reason templates
+data/posts.json            the five E-03 posts the ingest demo reads
 lib/engine/decide.ts       the pure verdict function
+lib/engine/take.ts         her take label, derived the same way the verdict is
 lib/engine/types.ts        the contract everything agrees on
+lib/engine/keys.ts         group_key, which is item id and job and nothing else
 lib/data/load.ts           sofia.json, then patches, then overrides, validated with zod
 lib/parse/groq.ts          free text to a validated schema
 lib/parse/fallback.ts      keyword matcher for when Groq is not there
@@ -221,14 +232,22 @@ lib/suggest/heuristics.ts  what to propose to her, pure counting
 lib/ingest/posts.ts        backfill and nightly post ingest
 lib/session.ts             the single demo studio login
 lib/store.ts               Supabase over PostgREST, in-memory fallback
+lib/local.ts               their shortlist and their questions, in their browser
+lib/track.ts               anonymous events, so the decision can be counted
+lib/api.ts                 the shared request schemas and the text sanitiser
 middleware.ts              the login in front of her desk and the write routes
 app/page.tsx               the browsable grid of her pieces, with search and sorts
-app/s/[item]/              the audience view
+app/s/[item]/              the audience view, the check-in and their own panel
 app/studio/                her desk, behind the one demo login
 app/v/[ref]/               a shared verdict snapshot
+app/login/                 the one demo sign in
+app/api/                   ask, escalate, answer, patch, share, feedback, event,
+                           mine, choose, ingest, login and health
+scripts/                   import, seed and reset
 public/items/              a drawn illustration for each piece
 tests/                     golden cases that must always pass
 evals/                     the twelve real DMs, two added cases and a scorer
+supabase/migrations/       the six tables, applied as two migrations
 ```
 
 ## Testing
@@ -237,7 +256,9 @@ evals/                     the twelve real DMs, two added cases and a scorer
 npm test
 ```
 
-The golden cases are the contract, not coverage theatre. A blazer worn weekly buys. The grey knit skips on her own words, "soft but pills". A £60 white tee points at the £35 version. The slingback waits without an occasion. An unknown item escalates rather than guessing. A confirmed override beats the engine, overrides beat patches, and an invalid patch is rejected with an error naming the field while the previous state stays live.
+104 tests over 8 files. The golden cases are the contract, not coverage theatre. A blazer worn weekly buys. The grey knit skips on her own words, "soft but pills". A £60 white tee points at the £35 version. The slingback waits without an occasion. An unknown item escalates rather than guessing. An investment piece with no idea how often it would be worn escalates too, because the cost per wear is the whole argument. A confirmed override beats the engine, overrides beat patches, a patch cannot create an item, and an invalid patch is rejected with an error naming the field while the previous state stays live.
+
+Two of the suites sweep all eight pieces across every combination the taps can produce. One fails if a take label ever contradicts the verdicts that piece can return, which is the grey knit bug. The other prints which pieces a follower's answers can move and which are fixed whatever they tap, and fails if a tap ever overturns a hard caveat, an out of stock piece or her confirmed answer.
 
 The parser is scored separately against the twelve real DMs from the case file, not against invented examples. Two more cases were added for the worth-it split and are marked as added in the file, so it is fourteen in total.
 

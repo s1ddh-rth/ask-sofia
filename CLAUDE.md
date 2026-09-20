@@ -33,7 +33,10 @@ Follows the Tano case file. Tailwind tokens paper #EDE8E1, card #F6F3EE, ink #1C
 2. Sofia's own take shows immediately (her verdict type and quote) with no input needed.
 3. To personalise, they either tap (how often they'd wear it, budget, what they own, occasion) or type one question into a single question box. The box returns a verdict card. It is not a chat thread and keeps no conversation history.
 4. The verdict card shows the call, her reasons, cost per wear, pairings, an alternative or caveat, and a paid disclosure if relevant. It has a share button and a thumbs down.
-5. A bar pinned to the bottom of the screen at all times reads "Still unsure? Ask Sofia herself". It sends the item, their context, the verdict they got and an optional note to Sofia's queue.
+5. A bar pinned to the bottom of the screen at all times reads "Still unsure? Ask Sofia herself". It sends the item, their context, the verdict they got and an optional note to Sofia's queue, and hands back a link that shows her answer once she confirms one.
+6. `/` is a browsable grid of everything she has talked about, with a drawn illustration per piece, search, and sorts by newly added, most asked and price.
+7. They can save a piece to a shortlist and keep the questions they asked, both in their own browser and nowhere else. "Help me choose" runs the same engine over the shortlist and orders it by what the engine already said.
+8. On a return visit a piece they saved asks once, anonymously, whether they bought it, through her link or somewhere else. That is the only way the app can see a purchase, because the evidence says the decision takes days and usually ends away from the link.
 
 ## Layout
 
@@ -41,29 +44,53 @@ Follows the Tano case file. Tailwind tokens paper #EDE8E1, card #F6F3EE, ink #1C
 data/sofia.json            items, rules, thresholds, quotes, UI copy and reason templates
 data/posts.json            fixture of the five E-03 posts for the ingest demo
 lib/data/load.ts           merges sofia.json, then patches, then overrides, validates with zod
+                           and owns the patch field allowlist
 lib/engine/types.ts        Item, Rules, UserContext, Verdict, ParsedQuestion, Patch
 lib/engine/decide.ts       pure verdict function, no I/O
+lib/engine/take.ts         her take label, derived the same way the verdict is
+lib/engine/keys.ts         group_key, kept out of the loader so client code can use it
 lib/parse/groq.ts          free text to ParsedQuestion via Groq, with guardrails
 lib/parse/fallback.ts      keyword matcher used when Groq fails or is unavailable
 lib/suggest/heuristics.ts  suggestions from the logs, pure counting, no model required
-lib/ingest/posts.ts        post ingest, today reads the fixture, in production a nightly job
+lib/ingest/posts.ts        post ingest in backfill and nightly modes, today over the fixture
 lib/store.ts               Supabase access with an in-memory fallback
+lib/api.ts                 shared request schemas and the text sanitiser
+lib/session.ts             the single demo studio login, signed cookie, Web Crypto
+lib/local.ts               their shortlist, their questions and their check-ins, localStorage
+lib/track.ts               anonymous events from the browser, no account, no person
+middleware.ts              the login in front of /studio and the three write routes
+app/page.tsx               the browsable grid, with search and sorts
 app/s/[item]/page.tsx      audience view, question box, verdict card, pinned Ask Sofia bar
 app/v/[ref]/page.tsx       shared verdict view, logs opens and buy taps
 app/studio/page.tsx        queue, grouped questions, suggestions, edits, counters, sync posts
+app/login/page.tsx         the one demo sign in, with the one tap option for judging
 app/api/ask/route.ts       parse, decide, log
 app/api/escalate/route.ts  pinned bar sends a packaged question to the queue
 app/api/answer/route.ts    Sofia's reply becomes an override after she confirms it
 app/api/patch/route.ts     approve a suggestion or save a direct edit as a patch
 app/api/share/route.ts     create a share ref with a snapshot of the verdict, track opens and buy taps
 app/api/feedback/route.ts  thumbs down on a verdict
-app/api/ingest/route.ts    runs the post ingest over the fixture
+app/api/ingest/route.ts    runs the post ingest over the fixture, backfill or nightly
+app/api/event/route.ts     anonymous events, shown, saved, returned, shared, opened, check-in
+app/api/mine/route.ts      which of the refs they hold she has answered, and their saved calls
+app/api/choose/route.ts    the same engine across a shortlist, ordered by what it already said
+app/api/login/route.ts     issues the studio session cookie
+app/api/health/route.ts    what is wired up on this deploy, never whether a key is valid
 scripts/import.ts          CSV to sofia.json items, for new wardrobe data
 scripts/seed.ts            demo questions, shares and feedback so the studio isn't empty
+scripts/reset.ts           clears the demo state and seeds it again
 tests/engine.test.ts       golden verdict cases
-tests/load.test.ts         merge order and patch validation
-evals/dms.json             the 12 DMs from evidence E-01 with expected fields
-evals/run.ts               parser eval, prints a score
+tests/load.test.ts         merge order, the patch allowlist and patch validation
+tests/take.test.ts         no take label may contradict the verdicts a piece can return
+tests/inputs.test.ts       every combination the taps can produce, and what they cannot move
+tests/parse.test.ts        the keyword matcher over the DM set
+tests/suggest.test.ts      what the heuristics propose and what they refuse to propose
+tests/ingest.test.ts       the two ingest modes and the window arithmetic
+tests/session.test.ts      the studio login and the signed cookie
+evals/dms.json             the 12 DMs from evidence E-01 with expected fields, plus 2 added
+evals/run.ts               parser eval, prints a score, run through vitest
+public/items/              a drawn illustration per piece, referenced by Item.image
+supabase/migrations/       the six tables, as two migrations
 ```
 
 ## Data shapes
@@ -91,6 +118,9 @@ type Item = {
   paid: boolean;
   link?: string;
   evidence: string[];                   // sheet refs, e.g. "E-04.1"
+  addedAt?: string;                     // sample value, for the newly added sort
+  image?: string;                       // a path under public/, nothing else
+  [key: string]: unknown;               // unknown fields pass through untouched
 };
 
 type Rules = {
@@ -99,6 +129,9 @@ type Rules = {
   basicCapGBP: number;                  // from "£35 is enough"
   maxPairings: number;                  // from "3 things I truly love"
   wearsPerMonth: { weekly: number; few: number; occasional: number };
+  quietWinnerPer1000Views: number;      // from E-03.4, used by the post ingest
+  suggestAfterRepeats: number;          // repeats before a rule is proposed
+  reviewAfterThumbsDown: number;        // thumbs down before a review
 };
 
 type UserContext = {
@@ -130,11 +163,13 @@ type ParsedQuestion = {
 };
 
 type Patch = {
-  target: string;                       // item id, a new item id, or "rules"
-  change: Partial<Item> | Partial<Rules>;
+  target: string;                       // an item id, or "rules"
+  change: Record<string, unknown>;      // only the allowlisted fields below
   reason: string;                       // the suggestion or edit it came from
 };
 ```
+
+A patch may only set nine fields on an item, which are `quote`, `price`, `stock`, `verdictType`, `caveat`, `cheaperOk`, `seasonNote`, `fitNote` and `pairsWith`, and only the eight fields of `Rules` on the rules. `id` is deliberately off the list, because the target is the id. A patch carrying any other field is refused whole with that field named, at the route and again when patches are read back out of the database. Two things follow. A patch can no longer create an item, because a new piece needs a `name` and `name` is not on the list, so adding a piece is an edit to `sofia.json` through the importer. And a repeated BUY proposes no patch at all, because nothing left on the list expresses that she would buy it again.
 
 Item quotes are shown to the audience as "Sofia’s take" with the evidence ref beside them in small text, on the browse grid and on the item page alike, so a claim can always be traced back to the sheet it came from. All schema fields beyond id, name, price, verdictType and quote are optional in the loader. Unknown fields pass through untouched. UI copy and reason templates live in `sofia.json` under `copy`, so tone changes are data edits. A patch that fails validation is rejected with an error naming the target and field, and the previous state stays live.
 
@@ -144,14 +179,18 @@ Item quotes are shown to the audience as "Sofia’s take" with the evidence ref 
 2. Stock is out, so WAIT, with her accepted alternative if one exists.
 3. `avoid`, or a caveat with severity hard, gives SKIP with her words.
 4. `basic` above `basicCapGBP` points to the cheaper version.
-5. `investment` works out cost per wear over `cpwMonths`. Under `cpwMaxGBP` is BUY, over is WAIT.
+5. `investment` with no `wear` given is ESCALATE, because the cost per wear is the whole argument. Otherwise it works out cost per wear over `cpwMonths`. At or under `cpwMaxGBP` is BUY, over is WAIT.
 6. `statement` with no occasion is WAIT.
 7. `situational` is WAIT with `seasonNote` unless the context fits.
 8. Over budget shows `cheaperOk` if it exists, otherwise WAIT.
 9. Pairings are the intersection of `pairsWith` and `owns`, capped at `maxPairings`.
 10. An unknown item, missing required context or conflicting signals gives ESCALATE.
 
+When nothing stands in the way the call is BUY, with a reason that says why rather than leaving her quote to carry the card on its own.
+
 Paid status is attached as `paidDisclosure` after the verdict is decided and is never read by any rule.
+
+The take label above the verdict is not read off `verdictType`. `lib/engine/take.ts` derives it from the same facts the engine uses, so a piece that can only ever be skipped, such as the grey knit with its hard caveat, cannot advertise itself as worth the money.
 
 ## Groq parser
 
@@ -192,7 +231,20 @@ create table posts (
   item_ids text[], status text default 'draft',  -- draft until Sofia confirms
   ingested_at timestamptz default now()
 );
+create table events (
+  id uuid primary key default gen_random_uuid(),
+  browser_id text,                 -- random, generated in the browser
+  kind text,                       -- shown, saved, returned, shared, share_opened, checkin
+  item_id text, group_key text,
+  verdict_call text,               -- the call at the time of the event
+  detail text,                     -- for a check-in, which answer they gave
+  ref text,                        -- the share or come-back token, when relevant
+  sample boolean default false,    -- true for seeded demo rows
+  created_at timestamptz default now()
+);
 ```
+
+Row level security is on with no policies on all six, so the publishable key is denied outright and only the service role the server routes use gets through.
 
 ## Escalation
 
@@ -202,7 +254,9 @@ The pinned bar is the only way to reach Sofia, and it is always visible on the a
 
 Sofia's judgement updates the live app in three ways, and only these. Her answer to a grouped question becomes an override immediately. Suggestions from `lib/suggest/heuristics.ts` appear in the studio for her to approve, and approved suggestions are saved as patches. She can also edit items and rules directly from the studio, which also saves patches. Groq may draft the wording of a suggestion from her past replies, but the heuristics decide what gets suggested and Sofia decides what goes live. Every patch is kept with a timestamp, which gives history.
 
-The two heuristics are repeated identical answers in the same group becoming a proposed rule, and verdicts with two or more thumbs down going to review.
+The two heuristics are repeated identical answers in the same group becoming a proposed rule, and verdicts with two or more thumbs down going to review. Both thresholds live in `rules` in `sofia.json`, because how many repeats count as a pattern is her judgement. A suggestion that cannot be expressed faithfully inside the patch allowlist proposes no patch and says why, rather than inventing one, which is what a repeated BUY and every thumbs down now do.
+
+The studio is behind the one demo login, and so are `/api/answer`, `/api/patch` and `/api/ingest`, because those are the three routes that write on her behalf. Everything the audience touches stays open.
 
 ## Post ingest
 
@@ -218,15 +272,17 @@ The dates and audio fields in `data/posts.json` are sample values, marked as suc
 
 ## Commands
 
-`npm run dev` runs locally. `npm test` runs the engine and loader tests. `npm run eval` runs the DM parser eval. `npm run import -- file.csv` merges new items into `sofia.json`. `npm run seed` loads demo data. `npm run reset` clears questions, overrides, patches and posts and reseeds, for a known state before a demo.
+`npm run dev` runs locally. `npm test` runs all eight suites, 104 tests, which are the engine, the loader, the take label, the tap combinations, the parser, the suggestions, the ingest and the login. `npm run eval` runs the DM parser eval, which scores 14 of 14 on the keyword matcher alone. `npm run import -- file.csv` merges new items into `sofia.json`. `npm run seed` loads demo data. `npm run reset` clears questions, overrides, patches and posts and reseeds, for a known state before a demo.
 
 ## Tests that must always pass
 
-A weekly-worn blazer gives BUY. The grey knit gives SKIP with "soft but pills". A £60 white tee points to the £35 version. The red slingback with no occasion gives WAIT. An out-of-stock item gives WAIT. An unknown item gives ESCALATE. A confirmed override returns Sofia's answer. A paid item gets the same verdict as an identical unpaid one. A patch changes the verdict it should, overrides beat patches, and an invalid patch is rejected while the previous state stays live.
+A weekly-worn blazer gives BUY. The grey knit gives SKIP with "soft but pills". A £60 white tee points to the £35 version. The red slingback with no occasion gives WAIT. An out-of-stock item gives WAIT. An unknown item gives ESCALATE. A confirmed override returns Sofia's answer. A paid item gets the same verdict as an identical unpaid one. An investment piece with no wear given gives ESCALATE. A patch changes the verdict it should, overrides beat patches, a patch carrying a field off the allowlist is refused whole with the field named, a patch cannot create an item, and an invalid patch is rejected while the previous state stays live. No take label contradicts the verdicts its piece can return, and no tap overturns a hard caveat, an out of stock piece or her confirmed answer.
 
 ## Curveballs (16:00 intelligence drop)
 
 Core flow must be deployed before 16:00. When new evidence arrives, sort each point into data, rule, copy or pitch. Data goes into `sofia.json` or through `npm run import`. A rule becomes one engine rule plus one golden test. Copy is a template edit in `sofia.json`. Anything bigger becomes a line in the demo, not new code. Never rebuild the architecture in response to the drop.
+
+What the drop actually produced is recorded as D-18 in `DECISIONS.md`. E-09 and E-10 say the decision is taken over days and usually completed away from the affiliate link, so it sorted into one new table, one panel in the studio called "Decisions you shaped", a shortlist and a question list kept in the follower's own browser, and one anonymous check-in asking whether they bought it. The engine, the data and the approval path did not change.
 
 ## Build priority
 

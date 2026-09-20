@@ -4,10 +4,16 @@ Kept in the order they were made, newest at the bottom.
 
 ## Scripts run TypeScript through Node's own type stripping
 
-`npm run eval`, `npm run import` and `npm run seed` use
+`npm run import`, `npm run seed` and `npm run reset` use
 `node --experimental-strip-types` rather than adding a TypeScript runner.
 Node 22.16 handles it, so this cost no dependency. The one constraint is that
 relative imports inside those scripts need an explicit `.ts` extension.
+
+`npm run eval` moved to vitest with its own config, because the eval imports
+the parser and the loader through the `@/` alias and vitest already resolves
+it. It still prints a score rather than asserting field by field, but it
+fails if job accuracy drops below every message, so a regression cannot pass
+quietly.
 
 ## Row level security is on with no policies
 
@@ -188,6 +194,10 @@ The proposed patch is deliberately narrow. A repeated SKIP becomes a hard
 caveat in her words, a repeated WAIT becomes a soft one, a repeated BUY sets
 `buyAgain`. Anything the data cannot express faithfully proposes no patch at
 all rather than inventing one, and she sees the exact change before approving.
+
+The repeated BUY case narrowed later. `buyAgain` came off the patch
+allowlist, so a repeated BUY now proposes nothing at all, which the entry on
+the nine field allowlist below explains.
 
 The thumbs down heuristic proposes nothing on purpose. Two or more people
 saying a verdict was not useful tells us something is wrong but not what, so
