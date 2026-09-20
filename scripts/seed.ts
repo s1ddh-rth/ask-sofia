@@ -100,6 +100,8 @@ const ESCALATED = {
 };
 
 // Six people asking whether the blazer is worth it, in their own words.
+// They land in the worth-it group, which is also where tapping through the
+// questions lands, so her answer reaches both.
 const blazerQuestions = [
   "Is the blazer actually worth £145 or am I being talked into it",
   "Ok but if you were me, which one would you actually buy?",
@@ -120,8 +122,8 @@ const skirtQuestions = [
 const questions: Row[] = [
   ...blazerQuestions.map((raw_text, i) => ({
     item_id: "black-blazer",
-    job: "decide",
-    group_key: "black-blazer:decide",
+    job: "worth-it",
+    group_key: "black-blazer:worth-it",
     context: { wear: "weekly", owns: ["white-tee"] },
     raw_text,
     source: "seed",
@@ -187,7 +189,7 @@ const questions: Row[] = [
 // Her answer to the blazer group, which is what the repeated answer
 // heuristic then proposes turning into a rule.
 const override = {
-  group_key: "black-blazer:decide",
+  group_key: "black-blazer:worth-it",
   answer: {
     call: "BUY",
     reasons: [
@@ -202,7 +204,7 @@ const shares: Row[] = [
     item_id: "black-blazer",
     verdict: {
       verdict: BLAZER_BUY,
-      groupKey: "black-blazer:decide",
+      groupKey: "black-blazer:worth-it",
       context: { wear: "weekly", owns: ["white-tee"] },
     },
     opens: 4,
