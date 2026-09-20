@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { badRequest } from "@/lib/api";
-import { logEvent } from "@/lib/store";
+import { loadLive, logEvent } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
 // happened, and which piece it happened to. Nothing that identifies a person,
 // and the schema is the guarantee rather than a promise.
 const EventSchema = z.object({
-  browserId: z.string().min(8).max(64),
+  // A uuid the browser made for itself, or the short fallback a private
+  // window gets. Anything else is somebody making rows up.
+  browserId: z.string().regex(/^[w-]{8,64}$/),
   kind: z.enum([
     "shown",
     "saved",
@@ -18,13 +20,13 @@ const EventSchema = z.object({
     "share_opened",
     "checkin",
   ]),
-  itemId: z.string().max(80).nullish(),
-  groupKey: z.string().max(160).nullish(),
+  itemId: z.string().regex(/^[a-z0-9-]{1,80}$/).nullish(),
+  groupKey: z.string().regex(/^[a-z0-9-]{1,80}:[a-z-]{1,24}$/).nullish(),
   verdictCall: z.enum(["BUY", "WAIT", "SKIP", "ESCALATE"]).nullish(),
   detail: z
     .enum(["her-link", "somewhere-else", "not-buying", "still-deciding"])
     .nullish(),
-  ref: z.string().max(64).nullish(),
+  ref: z.string().regex(/^[a-z0-9]{1,64}$/).nullish(),
 });
 
 export async function POST(req: Request) {
@@ -35,6 +37,20 @@ export async function POST(req: Request) {
   }
 
   const e = parsed.data;
+
+  // An event about a piece has to be about a piece that exists. This panel
+  // is the product's headline claim, so the numbers cannot be invented from
+  // outside.
+  if (e.itemId) {
+    const { byId } = await loadLive();
+    if (!byId[e.itemId]) {
+      return NextResponse.json(
+        { error: "Unknown item", field: "itemId" },
+        { status: 400 },
+      );
+    }
+  }
+
   await logEvent({
     browser_id: e.browserId,
     kind: e.kind,

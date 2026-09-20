@@ -66,6 +66,7 @@ export default function MyStuff({
         items: mySaved.map((s) => ({
           itemId: s.itemId,
           call: s.call,
+          job: s.job ?? "worth-it",
           context: s.context,
         })),
       }),

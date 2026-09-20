@@ -341,3 +341,27 @@ A test sweeps all eight pieces across every context the taps can produce and
 fails if any label contradicts the set of verdicts that piece can return, in
 either direction. The grey knit was the only one, but the test is there so the
 next item added cannot reintroduce it quietly.
+
+## D-18 Design for the considered decision, not the click
+
+E-09 says 62% of high value buyers never clicked her affiliate link, the
+median gap from saving to buying is 3.4 days, 41% of purchases followed a
+share to a friend or partner, and people who saved three or more looks bought
+2.2 times as often. E-10 says 7 of 9 buyers never clicked, and every one of
+those had saved at least three looks and come back at least twice.
+
+So the click is not the behaviour. The behaviour is a decision taken over
+days, revisited, shared with someone else, and completed somewhere we cannot
+see. An affiliate dashboard measures the one moment that behaviour skips.
+
+Three things follow, and they are what the product now does. Leaving and
+coming back has to work without an account, so the shortlist and their
+questions live in their own browser. Sharing has to carry her reasoning
+rather than a product, because a partner is often the one deciding. And since
+the purchase happens out of sight, the only honest way to know is to ask,
+once, anonymously, when they return.
+
+That is what "Decisions you shaped" counts. Verdicts given, saved, came back,
+shared, opened, and then the answer to did you buy it, split by whether it
+went through her link. The last number is the one her affiliate dashboard
+cannot produce.

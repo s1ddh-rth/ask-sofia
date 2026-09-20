@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { badRequest, ContextSchema, toContext } from "@/lib/api";
+import { badRequest, ContextSchema, JobSchema, toContext } from "@/lib/api";
 import { groupKey } from "@/lib/data/load";
 import { decide } from "@/lib/engine/decide";
 import { getOverrides, getShares, loadLive } from "@/lib/store";
@@ -19,6 +19,7 @@ const MineSchema = z.object({
       z.object({
         itemId: z.string().max(80),
         call: z.string().max(16),
+        job: JobSchema.default("worth-it"),
         context: ContextSchema.optional(),
       }),
     )
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
   // change means her judgement moved rather than their inputs.
   const current = items.map((saved) => {
     const context = toContext(saved.context ?? { owns: [] });
-    const key = groupKey(saved.itemId, "worth-it");
+    const key = groupKey(saved.itemId, saved.job);
     const verdict = decide({
       item: data.byId[saved.itemId] ?? null,
       context,

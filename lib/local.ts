@@ -10,6 +10,9 @@ export type SavedItem = {
   itemId: string;
   name: string;
   call: string; // what it said when they saved it
+  // The job the saved card belonged to. Without it the call gets compared
+  // against a different group and a match reads as her changing her mind.
+  job: string;
   // Their own answers, kept so the saved call can be compared like for like
   // when they come back. Never sent anywhere except to re-run their own
   // verdict.

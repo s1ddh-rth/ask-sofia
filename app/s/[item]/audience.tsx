@@ -215,6 +215,7 @@ export default function Audience({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           rawText: text,
+          fallbackItemId: item?.id ?? null,
           context: { wear, budgetGBP: budget, owns, occasion: occasion || null },
         }),
       });
@@ -339,6 +340,7 @@ export default function Audience({
       itemId: subject.id,
       name: subject.name,
       call: shown.call,
+      job,
       context: context as unknown as Record<string, unknown>,
       savedAt: new Date().toISOString(),
     });

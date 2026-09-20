@@ -60,6 +60,17 @@ const memory: Memory = (globalForMemory.__askSofiaMemory ??= {
   events: [],
 });
 
+// The object above is only created when nothing is there. A global that
+// outlived a change to this shape keeps whatever keys it had, so a newly
+// added one would be missing and the first write to it would throw. Fill
+// anything absent rather than trusting that first assignment.
+memory.questions ??= [];
+memory.overrides ??= new Map();
+memory.patches ??= [];
+memory.shares ??= new Map();
+memory.posts ??= new Map();
+memory.events ??= [];
+
 function newId(): string {
   return globalThis.crypto.randomUUID();
 }
@@ -376,6 +387,8 @@ export async function logEvent(row: Partial<EventRow>): Promise<void> {
       created_at: new Date().toISOString(),
       ...full,
     } as EventRow);
+    // Capped the way the read is capped, so a flood cannot grow without end.
+    if (memory.events.length > 2000) memory.events.length = 2000;
   }
 }
 

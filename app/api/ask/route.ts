@@ -10,6 +10,9 @@ export const dynamic = "force-dynamic";
 
 const AskSchema = z.object({
   itemId: z.string().max(80).nullish(),
+  // The piece whose page they are on. Used only when the question itself
+  // does not name one, so naming a different piece still wins.
+  fallbackItemId: z.string().max(80).nullish(),
   rawText: z.string().max(2000).nullish(),
   job: JobSchema.nullish(),
   context: ContextSchema.optional(),
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
       data.ownedTags,
     );
     job = input.job ?? read.job;
-    itemId = input.itemId ?? read.itemId;
+    itemId = input.itemId ?? read.itemId ?? input.fallbackItemId ?? null;
     source = from;
     if (read.wear) context.wear = context.wear ?? read.wear;
     if (read.budgetGBP) context.budgetGBP = context.budgetGBP ?? read.budgetGBP;
