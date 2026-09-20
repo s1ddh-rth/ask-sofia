@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { badRequest } from "@/lib/api";
-import { loadData } from "@/lib/data/load";
+import { loadData, unpatchableField } from "@/lib/data/load";
 import { getPatches, savePatch } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,21 @@ export async function POST(req: Request) {
 
   const { target, change, reason } = parsed.data;
   const candidate = { target, change, reason };
+
+  // Refuse an unknown field before anything else, so the message names the
+  // field rather than whatever the merged shape happens to fail on.
+  const forbidden = unpatchableField(candidate);
+  if (forbidden) {
+    return NextResponse.json(
+      {
+        error: "Patch rejected",
+        target,
+        field: forbidden,
+        detail: `${forbidden} is not a field a patch may set.`,
+      },
+      { status: 422 },
+    );
+  }
 
   // Dry run it against everything already live. A patch that would not
   // validate is refused here with the field named, and nothing is written,

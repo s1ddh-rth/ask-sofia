@@ -180,10 +180,12 @@ describe("patches", () => {
     ];
     const data = loadData({ patches });
 
-    // The loafers are still the loafers, and the blazer is untouched.
+    // The whole patch is refused rather than the id being quietly dropped,
+    // so nothing lands, including the price it also carried.
+    expect(data.patchErrors[0].field).toBe("id");
     expect(data.items).toHaveLength(8);
     expect(data.byId["loafers"].id).toBe("loafers");
-    expect(data.byId["loafers"].price).toBe(130);
+    expect(data.byId["loafers"].price).toBe(120);
     expect(data.byId["black-blazer"].name).toBe("Black blazer");
     expect(data.byId["black-blazer"].price).toBe(145);
   });
@@ -268,5 +270,69 @@ describe("merge order", () => {
     expect(withOverride.call).toBe("SKIP");
     expect(withOverride.ruleFired).toBe("override");
     expect(withOverride.reasons).toEqual(answer.reasons);
+  });
+});
+
+describe("a patch may only touch fields on the allowlist", () => {
+  const rejected = (target: string, change: Record<string, unknown>) => {
+    const data = loadData({
+      patches: [{ target, change, reason: "test" }],
+    });
+    return data.patchErrors[0] ?? null;
+  };
+
+  it("refuses to let a patch re-key an item", () => {
+    const err = rejected("loafers", { id: "black-blazer" });
+    expect(err?.field).toBe("id");
+    // Both pieces survive intact.
+    const data = loadData({
+      patches: [{ target: "loafers", change: { id: "black-blazer" }, reason: "x" }],
+    });
+    expect(data.byId["loafers"].name).toBe("Loafers");
+    expect(data.byId["black-blazer"].name).toBe("Black blazer");
+  });
+
+  it("refuses a field nobody put on the list", () => {
+    expect(rejected("loafers", { madeUp: "anything" })?.field).toBe("madeUp");
+    // A route body arrives through JSON.parse, which makes __proto__ a real
+    // own key rather than setting the prototype, so it reaches the allowlist.
+    const fromBody = JSON.parse('{"__proto__":{"polluted":true}}');
+    expect(rejected("loafers", fromBody)?.field).toBe("__proto__");
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
+  it("refuses an item field aimed at the rules", () => {
+    expect(rejected("rules", { quote: "not a rule" })?.field).toBe("quote");
+  });
+
+  it("refuses a rules field aimed at an item", () => {
+    expect(rejected("loafers", { cpwMaxGBP: 99 })?.field).toBe("cpwMaxGBP");
+  });
+
+  it("names the first offending field and writes nothing", () => {
+    const data = loadData({
+      patches: [
+        { target: "loafers", change: { price: 130, madeUp: 1 }, reason: "x" },
+      ],
+    });
+    expect(data.patchErrors).toHaveLength(1);
+    // The good half of a bad patch is not applied either.
+    expect(data.byId["loafers"].price).toBe(120);
+  });
+
+  it("still allows everything the studio and the suggestions actually write", () => {
+    const data = loadData({
+      patches: [
+        { target: "loafers", change: { quote: "new words", price: 130, stock: "low", verdictType: "basic" }, reason: "studio edit" },
+        { target: "grey-knit", change: { caveat: { text: "pills badly", severity: "hard" } }, reason: "suggestion" },
+        { target: "white-tee", change: { buyAgain: true }, reason: "suggestion" },
+        { target: "silk-skirt", change: { image: "/items/silk-skirt.svg" }, reason: "new drawing" },
+        { target: "rules", change: { cpwMaxGBP: 5 }, reason: "rules edit" },
+      ],
+    });
+    expect(data.patchErrors).toEqual([]);
+    expect(data.byId["loafers"].quote).toBe("new words");
+    expect(data.byId["grey-knit"].caveat?.text).toBe("pills badly");
+    expect(data.rules.cpwMaxGBP).toBe(5);
   });
 });

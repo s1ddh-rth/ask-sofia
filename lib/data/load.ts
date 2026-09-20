@@ -127,11 +127,71 @@ function firstFieldOf(error: z.ZodError): string {
 }
 
 // A patch targets "rules", an existing item id, or a brand new item id.
+// What a patch is allowed to touch. An allowlist rather than a denylist,
+// because /api/patch takes whatever fields it is handed and the studio is one
+// shared demo login. Anything not named here is refused outright, so a new
+// field cannot become writable by accident just by being added to the schema.
+//
+// id is absent on purpose. The patch target is the id, and a change carrying
+// its own would file the item under a different one.
+export const PATCHABLE_ITEM_FIELDS = new Set([
+  "name",
+  "category",
+  "price",
+  "size",
+  "style",
+  "stock",
+  "verdictType",
+  "quote",
+  "buyAgain",
+  "caveat",
+  "pairsWith",
+  "cheaperOk",
+  "seasonNote",
+  "fitNote",
+  "paid",
+  "link",
+  "image",
+  "evidence",
+  "addedAt",
+]);
+
+export const PATCHABLE_RULES_FIELDS = new Set([
+  "cpwMonths",
+  "cpwMaxGBP",
+  "basicCapGBP",
+  "maxPairings",
+  "wearsPerMonth",
+  "quietWinnerPer1000Views",
+  "suggestAfterRepeats",
+  "reviewAfterThumbsDown",
+]);
+
+// Returns the first field the patch is not allowed to set, or null.
+export function unpatchableField(patch: Patch): string | null {
+  const allowed =
+    patch.target === "rules" ? PATCHABLE_RULES_FIELDS : PATCHABLE_ITEM_FIELDS;
+  for (const field of Object.keys(patch.change ?? {})) {
+    if (!allowed.has(field)) return field;
+  }
+  return null;
+}
+
 function applyPatch(
   state: { rules: Rules; items: Map<string, ItemInput> },
   patch: Patch,
   errors: PatchError[],
 ): void {
+  const forbidden = unpatchableField(patch);
+  if (forbidden) {
+    errors.push({
+      target: patch.target,
+      field: forbidden,
+      message: `Patch to ${patch.target} rejected, ${forbidden} is not a field a patch may set. The previous state stays live.`,
+    });
+    return;
+  }
+
   if (patch.target === "rules") {
     const candidate = {
       ...state.rules,

@@ -243,3 +243,21 @@ insights lag by up to 48 hours and a number read last night is not always the
 number today. Each post records why it is in the run, so a refreshed post is
 distinguishable from a new one. The clock is injectable, which is what makes
 the window arithmetic testable instead of assumed.
+
+## A patch may only touch an allowlist of fields
+
+`/api/patch` takes whatever fields it is handed, and the studio sits behind
+one shared demo login, so the route needed a list of what a patch is allowed
+to set rather than a check on whichever field last caused a problem. The
+`image` URL constraint that came out of the security review is still there,
+but it is no longer the thing holding the door.
+
+`PATCHABLE_ITEM_FIELDS` and `PATCHABLE_RULES_FIELDS` live in the loader, so
+the check runs both at the route and again when patches are read back out of
+the database. A rogue row written by some other means cannot slip a field in
+either. `id` is deliberately absent, because the target is the id.
+
+A patch carrying a forbidden field is refused whole, rather than having that
+field quietly dropped and the rest applied. Silently ignoring part of what
+someone asked for is how surprises happen, and the studio never sends one of
+these anyway.
