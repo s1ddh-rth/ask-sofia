@@ -61,6 +61,7 @@ export async function POST(req: Request) {
     copy: data.copy,
     byId: data.byId,
     override: data.overrides[key] ?? null,
+    job,
   });
 
   const row = await logQuestion({

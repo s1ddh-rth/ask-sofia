@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadData } from "@/lib/data/load";
 import { decide } from "@/lib/engine/decide";
-import type { Item, UserContext } from "@/lib/engine/types";
+import type { Item, Job, UserContext } from "@/lib/engine/types";
 
 const data = loadData();
 const { rules, copy, byId } = data;
@@ -167,6 +167,79 @@ describe("the card explains itself", () => {
           `${item.id} gave only one reason for ${JSON.stringify(context)}`,
         ).toBeGreaterThan(1);
       }
+    }
+  });
+});
+
+describe("it answers the question that was asked", () => {
+  const data = loadData();
+  const askJob = (id: string, job: Job) =>
+    decide({
+      item: data.byId[id],
+      context: { owns: [] },
+      rules: data.rules,
+      copy: data.copy,
+      byId: data.byId,
+      job,
+    });
+
+  // The bug this exists for. An investment piece used to demand how often you
+  // would wear it before it would say anything at all, so every question that
+  // was not about buying went to her queue for no reason.
+  it("does not send a where question to her queue", () => {
+    const v = askJob("loafers", "where");
+    expect(v.call).not.toBe("ESCALATE");
+    expect(v.ruleFired).not.toBe("escalate-missing-wear");
+  });
+
+  it("answers a size question from her data", () => {
+    const v = askJob("loafers", "size");
+    expect(v.call).not.toBe("ESCALATE");
+    expect(v.reasons[0]).toContain("UK 5");
+  });
+
+  it("answers a pairing question from what she pairs it with", () => {
+    const v = askJob("loafers", "pairing");
+    expect(v.call).not.toBe("ESCALATE");
+    expect(v.reasons[0].toLowerCase()).toContain("wide-leg denim".toLowerCase());
+  });
+
+  it("leads with what they already own when they own it", () => {
+    const v = decide({
+      item: data.byId["loafers"],
+      context: { owns: ["wide-leg-denim"] },
+      rules: data.rules,
+      copy: data.copy,
+      byId: data.byId,
+      job: "pairing",
+    });
+    expect(v.reasons[0]).toContain("already own");
+  });
+
+  it("answers a cheaper question from her own alternative", () => {
+    const v = askJob("white-tee", "cheaper");
+    expect(v.reasons[0]).toContain("£35");
+  });
+
+  it("says so plainly when she has no cheaper version", () => {
+    const v = askJob("loafers", "cheaper");
+    expect(v.reasons[0].toLowerCase()).toContain("no cheaper version");
+  });
+
+  // And the buy shaped questions still escalate without it, because there
+  // the wear really is the whole argument.
+  it("still escalates a buy question with no wear given", () => {
+    for (const job of ["worth-it", "decide", "should-buy"] as Job[]) {
+      const v = askJob("loafers", job);
+      expect(v.call, `${job} should still escalate`).toBe("ESCALATE");
+      expect(v.ruleFired).toBe("escalate-missing-wear");
+    }
+  });
+
+  // Her instinct still outranks all of it.
+  it("still skips the grey knit whatever is asked", () => {
+    for (const job of ["where", "size", "pairing", "cheaper"] as Job[]) {
+      expect(askJob("grey-knit", job).call, job).toBe("SKIP");
     }
   });
 });

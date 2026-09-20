@@ -135,8 +135,9 @@ export default function Audience({
       copy,
       byId,
       override: overrides[key] ?? null,
+      job,
     });
-  }, [touched, asked, subject, context, rules, copy, byId, overrides, key]);
+  }, [touched, asked, subject, context, rules, copy, byId, overrides, key, job]);
 
   // A typed question is answered by the server, which has Groq in front of
   // the keyword matcher. The local verdict shows first so nothing waits, and

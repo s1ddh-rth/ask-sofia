@@ -245,7 +245,17 @@
       "escalateMissingWear": "How often you would actually wear it decides this one.",
       "statementFits": "You have somewhere to be, and that is the whole point of this one.",
       "basicUnderCap": "It is a basic and this is within the £{cap} she says is enough.",
-      "clearNothingAgainst": "Nothing about your answers argues against it."
+      "clearNothingAgainst": "Nothing about your answers argues against it.",
+      "whereLink": "She got it here.",
+      "whereNoLink": "She has not shared a link for this one, so ask her below.",
+      "sizeIs": "She takes {size} in it.",
+      "sizeFit": "{fitNote}.",
+      "sizeUnknown": "She has not said what size she takes in this one.",
+      "pairingOwned": "You already own {pairings}, wear it with that.",
+      "pairingHers": "She wears it with {pairings}.",
+      "pairingNone": "She has not named anything she pairs this with.",
+      "cheaperYes": "{note}, so put the difference somewhere it shows.",
+      "cheaperNo": "She has no cheaper version of this she would stand behind."
     },
     "ui": {
       "takeLabel": "Sofia's take",

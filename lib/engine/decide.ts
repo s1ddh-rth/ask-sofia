@@ -4,11 +4,18 @@
 import type {
   Copy,
   Item,
+  Job,
   OverrideAnswer,
   Rules,
   UserContext,
   Verdict,
 } from "./types";
+
+// Questions that are not buy decisions. Asking where a piece is from, what
+// size she takes, what she wears it with or whether there is a cheaper one
+// can all be answered from her data without knowing how often you would wear
+// it, so these must not be sent to her queue for want of that.
+const INFORMATIONAL: Job[] = ["where", "size", "pairing", "cheaper"];
 
 type DecideInput = {
   item: Item | null;
@@ -17,6 +24,7 @@ type DecideInput = {
   copy: Copy;
   byId?: Record<string, Item>;
   override?: OverrideAnswer | null;
+  job?: Job;
 };
 
 function fill(template: string, vars: Record<string, string | number>): string {
@@ -57,6 +65,7 @@ export function decide({
   copy,
   byId,
   override,
+  job,
 }: DecideInput): Verdict {
   const R = copy.reasons;
   const pairings = pairingsFor(item, context, rules);
@@ -87,6 +96,40 @@ export function decide({
   }
 
   const quote = fill(R.quote, { quote: item.quote });
+  const asking = job && INFORMATIONAL.includes(job) ? job : null;
+
+  // What they asked for, answered from her data rather than inferred.
+  const answerTo = (): string[] => {
+    if (asking === "where") {
+      return [item.link ? R.whereLink : R.whereNoLink];
+    }
+    if (asking === "size") {
+      const lines = item.size
+        ? [fill(R.sizeIs, { size: item.size })]
+        : [R.sizeUnknown];
+      if (item.fitNote) lines.push(fill(R.sizeFit, { fitNote: item.fitNote }));
+      return lines;
+    }
+    if (asking === "pairing") {
+      if (pairings.length > 0) {
+        return [fill(R.pairingOwned, { pairings: readable(pairings, byId) })];
+      }
+      if (item.pairsWith.length > 0) {
+        return [
+          fill(R.pairingHers, {
+            pairings: readable(item.pairsWith.slice(0, rules.maxPairings), byId),
+          }),
+        ];
+      }
+      return [R.pairingNone];
+    }
+    if (asking === "cheaper") {
+      return item.cheaperOk
+        ? [fill(R.cheaperYes, { note: item.cheaperOk.note })]
+        : [R.cheaperNo];
+    }
+    return [];
+  };
   // Paid status is attached after the fact and is never read by a rule.
   const disclosure = item.paid ? { paidDisclosure: true } : {};
   const pairingReason =
@@ -102,7 +145,9 @@ export function decide({
   ): Verdict => ({
     call,
     ruleFired,
-    reasons: [...reasons, ...pairingReason],
+    // What they asked for comes first. The verdict is still the verdict, but
+    // a size question should not open with cost per wear.
+    reasons: [...answerTo(), ...reasons, ...(asking === "pairing" ? [] : pairingReason)],
     pairings,
     ...extra,
     ...disclosure,
@@ -156,7 +201,7 @@ export function decide({
   }
 
   // Rule 5. An investment has to earn its cost per wear.
-  if (item.verdictType === "investment") {
+  if (item.verdictType === "investment" && !asking) {
     if (!context.wear) {
       return {
         call: "ESCALATE",
