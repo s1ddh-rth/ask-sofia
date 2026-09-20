@@ -170,6 +170,24 @@ describe("patches", () => {
     expect(v.call).toBe("BUY");
   });
 
+  it("keeps a patched item under its target id, whatever the change says", () => {
+    const patches: Patch[] = [
+      {
+        target: "loafers",
+        change: { id: "black-blazer", price: 130 },
+        reason: "A change carrying someone else's id",
+      },
+    ];
+    const data = loadData({ patches });
+
+    // The loafers are still the loafers, and the blazer is untouched.
+    expect(data.items).toHaveLength(8);
+    expect(data.byId["loafers"].id).toBe("loafers");
+    expect(data.byId["loafers"].price).toBe(130);
+    expect(data.byId["black-blazer"].name).toBe("Black blazer");
+    expect(data.byId["black-blazer"].price).toBe(145);
+  });
+
   it("rejects a new item that is missing required fields", () => {
     const patches: Patch[] = [
       { target: "half-item", change: { name: "Half an item" }, reason: "Oops" },

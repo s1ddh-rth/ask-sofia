@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { loadData } from "@/lib/data/load";
+import { loadLive } from "@/lib/store";
 
-export default function Home() {
-  const { items, copy } = loadData();
+// Her approved patches have to show here too, not only on the item page, so
+// this renders per request rather than being baked at build time.
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const { items, copy } = await loadLive();
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-16 pt-10">

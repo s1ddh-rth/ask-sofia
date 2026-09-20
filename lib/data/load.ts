@@ -142,9 +142,12 @@ function applyPatch(
   }
 
   const existing = state.items.get(patch.target);
+  // The target is the id. A change carrying its own id would otherwise file
+  // the item under a different one, which quietly overwrites whatever already
+  // lives there and loses the piece that was patched.
   const candidate = existing
-    ? { ...existing, ...patch.change }
-    : { id: patch.target, ...patch.change };
+    ? { ...existing, ...patch.change, id: patch.target }
+    : { ...patch.change, id: patch.target };
 
   const parsed = ItemInputSchema.safeParse(candidate);
   if (!parsed.success) {
