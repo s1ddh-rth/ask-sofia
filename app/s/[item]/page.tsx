@@ -5,6 +5,7 @@ import { ingestPosts } from "@/lib/ingest/posts";
 import { takeLabel } from "@/lib/engine/take";
 import { loadLive } from "@/lib/store";
 import Audience from "./audience";
+import CheckIn from "./checkin";
 
 // Overrides and patches have to be live, so this renders per request.
 export const dynamic = "force-dynamic";
@@ -139,6 +140,8 @@ export default async function ItemPage({
 
         {/* Your side of it. */}
         <div>
+          {item ? <CheckIn itemId={item.id} itemName={item.name} /> : null}
+
           <Audience
             item={item}
             itemSlug={slug}

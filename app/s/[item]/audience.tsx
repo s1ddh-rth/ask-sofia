@@ -4,7 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { decide } from "@/lib/engine/decide";
 import { groupKey } from "@/lib/engine/keys";
 import { parseFallback } from "@/lib/parse/fallback";
-import MyQuestions, { remember } from "./mine";
+import { questions, saved, seen } from "@/lib/local";
+import { track } from "@/lib/track";
+import MyStuff from "./mine";
 import type {
   Copy,
   Item,
@@ -249,7 +251,7 @@ export default function Audience({
         if (d?.path) {
           setBackLink(`${window.location.origin}${d.path}`);
           if (d?.ref) {
-            remember({
+            questions.add({
               ref: d.ref,
               path: d.path,
               itemId: subject?.id ?? itemSlug,
@@ -283,6 +285,13 @@ export default function Audience({
       const d = await res.json();
       const url = `${window.location.origin}${d.path}`;
       setShareLink(url);
+      track({
+        kind: "shared",
+        itemId: subject?.id ?? null,
+        groupKey: key,
+        verdictCall: shown?.call ?? null,
+        ref: d.ref ?? null,
+      });
       if (navigator.share) {
         await navigator
           .share({ title: "Sofia's verdict", url })
@@ -294,6 +303,54 @@ export default function Audience({
       setShareLink(null);
     } finally {
       setSharing(false);
+    }
+  }
+
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Whether this piece is already on their shortlist, read after mount so the
+  // server and the browser never disagree.
+  useEffect(() => {
+    // Same reason: the shortlist lives in localStorage, which only exists
+    // once this is running in a browser.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (subject) setIsSaved(saved.has(subject.id));
+  }, [subject]);
+
+  // A verdict being seen is the first thing worth counting, because the
+  // decision starts here and finishes days later somewhere we cannot see.
+  const seenLogged = useRef("");
+  useEffect(() => {
+    if (!shown || !subject) return;
+    const sig = `${subject.id}:${shown.call}`;
+    if (seenLogged.current === sig) return;
+    seenLogged.current = sig;
+    track({
+      kind: "shown",
+      itemId: subject.id,
+      groupKey: key,
+      verdictCall: shown.call,
+    });
+  }, [shown, subject, key]);
+
+  function toggleSave() {
+    if (!subject || !shown) return;
+    const nowSaved = saved.toggle({
+      itemId: subject.id,
+      name: subject.name,
+      call: shown.call,
+      context: context as unknown as Record<string, unknown>,
+      savedAt: new Date().toISOString(),
+    });
+    setIsSaved(nowSaved);
+    seen.mark(subject.id);
+    if (nowSaved) {
+      track({
+        kind: "saved",
+        itemId: subject.id,
+        groupKey: key,
+        verdictCall: shown.call,
+      });
     }
   }
 
@@ -414,10 +471,12 @@ export default function Audience({
           onShare={share}
           sharing={sharing}
           shareLink={shareLink}
+          onSave={toggleSave}
+          isSaved={isSaved}
         />
       ) : null}
 
-      <MyQuestions />
+      <MyStuff callLabels={copy.callLabels} />
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-ink/10 bg-paper/95 backdrop-blur">
         <div className="mx-auto w-full max-w-5xl px-5 py-3">
@@ -536,6 +595,8 @@ function VerdictCard({
   onShare,
   sharing,
   shareLink,
+  onSave,
+  isSaved,
 }: {
   verdict: Verdict;
   copy: Copy;
@@ -544,6 +605,8 @@ function VerdictCard({
   onShare: () => void;
   sharing: boolean;
   shareLink: string | null;
+  onSave: () => void;
+  isSaved: boolean;
 }) {
   const ui = copy.ui as Record<string, string>;
   return (
@@ -591,6 +654,18 @@ function VerdictCard({
       ) : null}
 
       <div className="mt-5 flex items-center gap-2 border-t border-ink/10 pt-4">
+        <button
+          type="button"
+          onClick={onSave}
+          aria-pressed={isSaved}
+          className={`rounded-sm border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] ${
+            isSaved
+              ? "border-rust bg-rust text-card"
+              : "border-ink/15 text-muted"
+          }`}
+        >
+          {isSaved ? "Saved" : "Save"}
+        </button>
         <button
           type="button"
           onClick={onShare}

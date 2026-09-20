@@ -39,6 +39,7 @@ type Memory = {
   patches: Patch[];
   shares: Map<string, ShareRow>;
   posts: Map<string, PostRow>;
+  events: EventRow[];
 };
 
 // The fallback. Lives for as long as the server instance does, which is all
@@ -56,6 +57,7 @@ const memory: Memory = (globalForMemory.__askSofiaMemory ??= {
   patches: [],
   shares: new Map(),
   posts: new Map(),
+  events: [],
 });
 
 function newId(): string {
@@ -329,4 +331,58 @@ export async function listPosts(): Promise<PostRow[]> {
   const res = await rest("posts?select=*&order=purchases.desc&limit=100");
   if (!res) return [...memory.posts.values()];
   return (await res.json()) as PostRow[];
+}
+
+export type EventKind =
+  | "shown"
+  | "saved"
+  | "returned"
+  | "shared"
+  | "share_opened"
+  | "checkin";
+
+export type EventRow = {
+  id: string;
+  browser_id: string | null;
+  kind: EventKind;
+  item_id: string | null;
+  group_key: string | null;
+  verdict_call: string | null;
+  detail: string | null;
+  ref: string | null;
+  sample: boolean;
+  created_at: string;
+};
+
+// A browser id and nothing else. No name, no email, no address, no fingerprint.
+export async function logEvent(row: Partial<EventRow>): Promise<void> {
+  const full = {
+    browser_id: row.browser_id ?? null,
+    kind: row.kind ?? "shown",
+    item_id: row.item_id ?? null,
+    group_key: row.group_key ?? null,
+    verdict_call: row.verdict_call ?? null,
+    detail: row.detail ?? null,
+    ref: row.ref ?? null,
+    sample: row.sample ?? false,
+  };
+  const res = await rest("events", {
+    method: "POST",
+    body: JSON.stringify(full),
+  });
+  if (!res) {
+    memory.events.unshift({
+      id: newId(),
+      created_at: new Date().toISOString(),
+      ...full,
+    } as EventRow);
+  }
+}
+
+export async function listEvents(limit = 2000): Promise<EventRow[]> {
+  const res = await rest(
+    `events?select=*&order=created_at.desc&limit=${limit}`,
+  );
+  if (!res) return memory.events.slice(0, limit);
+  return (await res.json()) as EventRow[];
 }
