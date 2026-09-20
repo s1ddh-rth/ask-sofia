@@ -293,7 +293,32 @@
       "sharedContext": "Her answer for one person's wardrobe and budget. Yours may differ.",
       "studioPrompt": "Are you Sofia?",
       "studioLink": "Open her studio",
-      "studioNote": "Where she answers the questions this could not."
+      "studioNote": "Where she answers the questions this could not.",
+      "jobLabels": {
+        "where": "Where is it from",
+        "size": "What size",
+        "pairing": "What to wear it with",
+        "cheaper": "Is there a cheaper one",
+        "adapt": "How to make it work for me",
+        "decide": "Help me choose",
+        "worth-it": "Is it worth it",
+        "should-buy": "Should I be buying at all",
+        "other": "Something else"
+      },
+      "ruleLabels": {
+        "override": "Your answer",
+        "stock-out": "Out of stock",
+        "hard-caveat": "Your caveat on it",
+        "avoid": "One you would skip",
+        "basic-over-cap": "Over your cap for a basic",
+        "investment-cpw": "Cost per wear",
+        "statement-no-occasion": "No occasion given",
+        "situational-no-fit": "Wrong time of year",
+        "over-budget": "Over their budget",
+        "escalate-unknown-item": "You have not covered this",
+        "escalate-missing-wear": "They did not say how often",
+        "clear": "Nothing stood against it"
+      }
     }
   }
 }

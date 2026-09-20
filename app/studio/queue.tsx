@@ -28,19 +28,40 @@ const CALL_WORDS: Record<string, string> = {
   ESCALATE: "Ask Sofia",
 };
 
-export default function Queue({ groups }: { groups: Group[] }) {
+export default function Queue({
+  groups,
+  jobLabels,
+  ruleLabels,
+}: {
+  groups: Group[];
+  // Her interface should not show her the keys this app files things under.
+  jobLabels: Record<string, string>;
+  ruleLabels: Record<string, string>;
+}) {
   return (
     <ul className="mt-3 space-y-3">
       {groups.map((group) => (
         <li key={group.key}>
-          <GroupCard group={group} />
+          <GroupCard
+            group={group}
+            jobLabels={jobLabels}
+            ruleLabels={ruleLabels}
+          />
         </li>
       ))}
     </ul>
   );
 }
 
-function GroupCard({ group }: { group: Group }) {
+function GroupCard({
+  group,
+  jobLabels,
+  ruleLabels,
+}: {
+  group: Group;
+  jobLabels: Record<string, string>;
+  ruleLabels: Record<string, string>;
+}) {
   const router = useRouter();
   const [call, setCall] = useState<Call>("WAIT");
   const [words, setWords] = useState("");
@@ -86,9 +107,7 @@ function GroupCard({ group }: { group: Group }) {
         </span>
       </div>
 
-      <p className="label mt-1">
-        {group.job} / {group.key}
-      </p>
+      <p className="label mt-1">{jobLabels[group.job] ?? group.job}</p>
 
       <div className="mt-2 flex flex-wrap gap-2">
         {group.escalated > 0 ? (
@@ -102,7 +121,9 @@ function GroupCard({ group }: { group: Group }) {
             engine said {CALL_WORDS[group.lastCall] ?? group.lastCall}
           </Tag>
         ) : null}
-        {group.ruleFired ? <Tag>{group.ruleFired}</Tag> : null}
+        {group.ruleFired ? (
+          <Tag>{ruleLabels[group.ruleFired] ?? group.ruleFired}</Tag>
+        ) : null}
       </div>
 
       {group.questions.length > 0 ? (
@@ -195,7 +216,8 @@ function GroupCard({ group }: { group: Group }) {
               </p>
               <p className="mt-1 text-[15px]">{draft.reasons[0]}</p>
               <p className="label mt-2">
-                Replaces the engine for {group.key}
+                Everyone who asks this about the{" "}
+                {group.itemName.toLowerCase()} sees it
               </p>
               {failed ? (
                 <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.1em] text-rust">

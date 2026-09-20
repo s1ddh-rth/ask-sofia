@@ -100,6 +100,10 @@ export default async function StudioPage() {
     };
   });
 
+  const ui = data.copy.ui as Record<string, unknown>;
+  const jobLabels = (ui.jobLabels ?? {}) as Record<string, string>;
+  const ruleLabels = (ui.ruleLabels ?? {}) as Record<string, string>;
+
   const suggestions = suggest({
     questions,
     overrides: data.overrides,
@@ -157,7 +161,7 @@ export default async function StudioPage() {
             <span>
               <span className="font-mono text-[11px] text-muted">{i + 1}. </span>
               {g.itemName}
-              <span className="label"> {g.job}</span>
+              <span className="label"> {jobLabels[g.job] ?? g.job}</span>
             </span>
             <span className="shrink-0 font-heading text-xl font-bold">
               {g.count}
@@ -177,7 +181,11 @@ export default async function StudioPage() {
           Sofia bar.
         </p>
       ) : (
-        <Queue groups={ordered} />
+        <Queue
+          groups={ordered}
+          jobLabels={jobLabels}
+          ruleLabels={ruleLabels}
+        />
       )}
 
       <h2 className="label mt-10">What the logs suggest</h2>
