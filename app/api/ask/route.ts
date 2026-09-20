@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const data = await loadLive();
   const context = toContext(input.context ?? { owns: [] });
 
-  let job = input.job ?? "should-buy";
+  let job = input.job ?? "worth-it";
   let itemId = input.itemId ?? null;
   let source = input.source;
   const rawText = input.rawText ? sanitiseText(input.rawText) : null;

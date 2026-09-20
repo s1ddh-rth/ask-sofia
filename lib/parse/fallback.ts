@@ -27,8 +27,35 @@ const JOB_PATTERNS: Array<{ job: Job; patterns: RegExp[] }> = [
     patterns: [/\b(wear|go|goes|pair) (it )?with\b/, /\bwhat (should|do) i wear with\b/, /\bstyle (it|them)\b/, /\bpairs? with\b/],
   },
   {
+    // Their shopping in general, not any one piece. Checked first so a
+    // message about buying less cannot be read as a question about an item.
     job: "should-buy",
-    patterns: [/\bshould i (buy|get)\b/, /\bworth it\b/, /\bworth the money\b/, /\btrying not to buy\b/, /\bstop buying\b/, /\buse what i (own|have)\b/, /\bdo i need\b/],
+    patterns: [
+      /\btrying not to buy\b/,
+      /\btrying to (buy|shop) less\b/,
+      /\bstop buying\b/,
+      /\bbuy(ing)? less\b/,
+      /\bshop(ping)? less\b/,
+      /\buse what i (own|have|already have)\b/,
+      /\bshopping ban\b/,
+      /\bmore stuff\b/,
+      /\bneed anything new\b/,
+    ],
+  },
+  {
+    // One piece, and whether it earns its place for them.
+    job: "worth-it",
+    patterns: [
+      /\bshould i (buy|get)\b/,
+      /\bworth it\b/,
+      /\bworth the money\b/,
+      /\bworth £?\d/,
+      /\btalk me (out of|into)\b/,
+      /\bdo i need (it|this|these|them)\b/,
+      /\bjustify\b/,
+      /\bam i being talked into\b/,
+      /\bsplurge\b/,
+    ],
   },
   {
     job: "decide",

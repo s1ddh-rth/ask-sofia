@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const EscalateSchema = z.object({
   itemId: z.string().max(80).nullish(),
-  job: JobSchema.default("should-buy"),
+  job: JobSchema.default("worth-it"),
   context: ContextSchema.optional(),
   note: z.string().max(2000).nullish(),
   rawText: z.string().max(2000).nullish(),
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
   await createShare({
     ref,
     item_id: itemId,
-    verdict: { verdict, groupKey: key, context },
+    verdict: { verdict, groupKey: key, context, asked: true },
   });
 
   return NextResponse.json({

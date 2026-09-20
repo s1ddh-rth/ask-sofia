@@ -205,7 +205,12 @@ export type ShareRow = {
   // The snapshot. Shape is ours, so it carries the group key as well as the
   // verdict, which is what lets a shared link show her answer once she gives
   // one without needing a column for it.
-  verdict: { verdict: Verdict; groupKey: string; context?: UserContext } | null;
+  verdict: {
+    verdict: Verdict;
+    groupKey: string;
+    context?: UserContext;
+    asked?: boolean;
+  } | null;
   opens: number;
   buy_taps: number;
   created_at: string;

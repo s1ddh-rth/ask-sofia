@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  listPosts,
-  listQuestions,
-  listShares,
-  loadLive,
-  supabaseConfigured,
-} from "@/lib/store";
+import { listPosts, listQuestions, listShares, loadLive } from "@/lib/store";
 import { suggest } from "@/lib/suggest/heuristics";
 import EditItem from "./edit";
 import Queue, { type Group } from "./queue";
@@ -133,12 +127,6 @@ export default async function StudioPage() {
           </div>
         ))}
       </dl>
-
-      {!supabaseConfigured ? (
-        <p className="mt-4 rounded-sm border border-rust/30 bg-rust/5 px-3 py-2 font-mono text-[11px] uppercase leading-relaxed tracking-[0.1em] text-rust">
-          Running on in-memory state. Answers last until the server restarts.
-        </p>
-      ) : null}
 
       <h2 className="label mt-10">The queue, grouped</h2>
 

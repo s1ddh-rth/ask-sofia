@@ -63,6 +63,7 @@ export default async function SharePage({
   // If Sofia has answered this group since the link was made, say so. The
   // snapshot stays exactly as it was, because that is what was shared.
   const answered = data.overrides[share.verdict.groupKey] ?? null;
+  const asked = share.verdict.asked === true;
   const copy = data.copy;
 
   return (
@@ -126,9 +127,21 @@ export default async function SharePage({
         </p>
       </section>
 
+      {!answered && asked ? (
+        <section className="mt-4 rounded-sm border border-ink/15 border-dashed p-5">
+          <p className="label">Waiting on Sofia</p>
+          <p className="mt-2 text-[15px] leading-relaxed">
+            She has not answered this one yet. Keep this link. Her answer will
+            appear here when she does.
+          </p>
+        </section>
+      ) : null}
+
       {answered ? (
         <section className="mt-4 rounded-sm border border-rust/40 bg-rust/5 p-5">
-          <p className="label">Sofia has answered this herself since</p>
+          <p className="label">
+            {asked ? "Sofia answered you" : "Sofia has answered this herself since"}
+          </p>
           <p className="font-heading mt-1 text-2xl font-semibold uppercase text-rust">
             {copy.callLabels[answered.call]}
           </p>

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const CreateSchema = z.object({
   itemId: z.string().max(80).nullish(),
-  job: JobSchema.default("should-buy"),
+  job: JobSchema.default("worth-it"),
   context: ContextSchema.optional(),
 });
 

@@ -91,7 +91,7 @@ export default function Audience({
   const [question, setQuestion] = useState("");
   const [asked, setAsked] = useState<UserContext | null>(null);
   const [askedItem, setAskedItem] = useState<Item | null>(null);
-  const [job, setJob] = useState<Job>("should-buy");
+  const [job, setJob] = useState<Job>("worth-it");
   const [questionId, setQuestionId] = useState<string | null>(null);
   const [remote, setRemote] = useState<Verdict | null>(null);
   const [asking, setAsking] = useState(false);
@@ -99,6 +99,7 @@ export default function Audience({
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [backLink, setBackLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [barOpen, setBarOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -170,7 +171,7 @@ export default function Audience({
   function reset() {
     setTouched(true);
     setAsked(null);
-    setJob("should-buy");
+    setJob("worth-it");
     setThanks(false);
     setRemote(null);
     setShareLink(null);
@@ -242,7 +243,7 @@ export default function Audience({
       });
       if (res.ok) {
         const d = await res.json().catch(() => null);
-        if (d?.path) setBackLink(d.path);
+        if (d?.path) setBackLink(`${window.location.origin}${d.path}`);
         setSent("done");
       } else {
         setSent("failed");
@@ -423,15 +424,31 @@ export default function Audience({
                     Sent to Sofia with your answers and the verdict you got.
                   </p>
                   {backLink ? (
-                    <p className="mt-1 text-[15px]">
-                      Keep this link and her answer will appear on it.{" "}
-                      <a
-                        href={backLink}
-                        className="break-all font-mono text-[11px] tracking-[0.05em] text-rust underline"
-                      >
-                        {backLink}
-                      </a>
-                    </p>
+                    <>
+                      <p className="mt-2 text-[15px]">
+                        Save this, Sofia&rsquo;s answer will appear here.
+                      </p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <a
+                          href={backLink}
+                          className="min-w-0 flex-1 truncate rounded-sm border border-ink/15 bg-card px-3 py-2 font-mono text-[11px] tracking-[0.05em] text-rust"
+                        >
+                          {backLink}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCopied(true);
+                            navigator.clipboard
+                              ?.writeText(backLink)
+                              .catch(() => {});
+                          }}
+                          className="shrink-0 rounded-sm border border-ink/15 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted"
+                        >
+                          {copied ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                    </>
                   ) : null}
                 </div>
               ) : (

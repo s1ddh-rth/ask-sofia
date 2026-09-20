@@ -153,8 +153,8 @@ const questions: Row[] = [
     "are linen trousers worth it if I crease everything",
   ].map((raw_text) => ({
     item_id: "linen-trousers",
-    job: "should-buy",
-    group_key: "linen-trousers:should-buy",
+    job: "worth-it",
+    group_key: "linen-trousers:worth-it",
     context: { owns: [] },
     raw_text,
     source: "seed",
@@ -171,8 +171,8 @@ const questions: Row[] = [
     "the grey knit answer feels harsh",
   ].map((raw_text) => ({
     item_id: "grey-knit",
-    job: "should-buy",
-    group_key: "grey-knit:should-buy",
+    job: "worth-it",
+    group_key: "grey-knit:worth-it",
     context: { wear: "weekly", owns: ["jeans"] },
     raw_text,
     source: "seed",
@@ -213,7 +213,7 @@ const shares: Row[] = [
     item_id: "grey-knit",
     verdict: {
       verdict: KNIT_SKIP,
-      groupKey: "grey-knit:should-buy",
+      groupKey: "grey-knit:worth-it",
       context: { wear: "weekly", owns: ["jeans"] },
     },
     opens: 1,

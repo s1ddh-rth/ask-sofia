@@ -10,7 +10,8 @@
     "test": "vitest run",
     "eval": "vitest run --config vitest.eval.mts",
     "import": "node --no-warnings --experimental-strip-types scripts/import.ts",
-    "seed": "node --no-warnings --experimental-strip-types scripts/seed.ts"
+    "seed": "node --no-warnings --experimental-strip-types scripts/seed.ts",
+    "reset": "node --no-warnings --experimental-strip-types scripts/reset.ts"
   },
   "dependencies": {
     "next": "16.3.5",

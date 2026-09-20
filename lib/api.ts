@@ -10,6 +10,7 @@ export const JobSchema = z.enum([
   "size",
   "pairing",
   "adapt",
+  "worth-it",
   "should-buy",
   "other",
 ]);

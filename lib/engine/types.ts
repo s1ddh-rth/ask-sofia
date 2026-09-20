@@ -14,7 +14,8 @@ export type Job =
   | "size"
   | "pairing"
   | "adapt"
-  | "should-buy"
+  | "worth-it" // is this particular piece worth it for me
+  | "should-buy" // should I be buying anything at all
   | "other";
 
 export type Stock = "in" | "low" | "one-off" | "out";
