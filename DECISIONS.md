@@ -147,7 +147,7 @@ It turns "anything like this but under £120" into
 `{job:"cheaper", budgetGBP:120}`. That is all. It never sees a verdict, never
 writes a reason, and cannot invent an item id, because the output guardrail
 checks every id against the loaded data and nulls anything else. The keyword
-matcher behind it already scores 12 of 12 on the real DMs, so the model is an
+matcher behind it already scores 14 of 14 on the DM set, so the model is an
 upgrade on a working floor rather than a dependency.
 
 ### The part that was cut
