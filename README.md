@@ -56,6 +56,7 @@ flowchart TB
     end
 
     subgraph her["Sofia"]
+        login["/login<br/>one demo login"]
         studio["/studio<br/>queue · suggestions · edits"]
     end
 
@@ -72,6 +73,7 @@ flowchart TB
     card --> bar
     bar --> esc
     esc --> studio
+    login --> studio
     studio --> ans
     studio --> patch
     ans --> overrides
@@ -87,6 +89,8 @@ flowchart TB
 ```
 
 The dashed boxes are the parts allowed to fail. Groq falls back to the keyword matcher, Supabase falls back to in-memory state, and the engine runs in the browser, so **every screen still works with both of them down.**
+
+Her desk is behind one demo login, and so is every route that writes on her behalf, which is `/api/answer`, `/api/patch` and `/api/ingest`. Everything the audience touches stays open.
 
 ---
 
@@ -113,7 +117,9 @@ flowchart TD
     cpw -->|no| wait2["WAIT"]
     inv -->|no| stmt{"A statement piece<br/>with nowhere to go?"}
     stmt -->|yes| wait3["WAIT"]
-    stmt -->|no| budget{"Over their budget?"}
+    stmt -->|no| situ{"A situational piece<br/>with nowhere to go?"}
+    situ -->|yes| wait5["WAIT<br/>plus her season note"]
+    situ -->|no| budget{"Over their budget?"}
     budget -->|yes| wait4["WAIT"]
     budget -->|no| buy
 
@@ -148,7 +154,7 @@ flowchart LR
 ```
 
 - **Her answer to a grouped question** becomes an override the moment she confirms it, word for word.
-- **The heuristics** propose. The same answer three times in one group becomes a proposed rule, and a verdict with two or more thumbs down goes to review. They are arithmetic, not a model, so she can audit why something was suggested.
+- **The heuristics** propose. One confirmed answer standing in for three or more people becomes a proposed rule, and a verdict with two or more thumbs down goes to review. Both counts live in `sofia.json`, because how many repeats make a pattern is her judgement. They are arithmetic, not a model, so she can audit why something was suggested.
 - **She decides.** Groq may draft the wording of a suggestion, but the heuristics choose what gets suggested and Sofia chooses what goes live.
 
 **There is no learned model and no automatic learning from user behaviour.** Sofia is the model. The app is the inference engine, and escalation is how it says "I do not know" instead of inventing an answer.
@@ -163,13 +169,14 @@ cp .env.example .env.local   # then fill it in
 npm run dev
 ```
 
-It runs with an empty `.env.local`. Groq drops to the keyword matcher and Supabase drops to in-memory state, which is the point.
+It runs with an empty `.env.local`. Groq drops to the keyword matcher and Supabase drops to in-memory state, which is the point. The studio is the one exception, since its login needs `STUDIO_USER`, `STUDIO_PASSWORD` and `SESSION_SECRET`, and the sign in page names them when they are missing.
 
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Local dev server |
-| `npm test` | Engine, loader and parser tests |
-| `npm run eval` | Scores the parser against the twelve real DMs |
+| `npm run build` | The production build, the same one Vercel runs on every push |
+| `npm test` | Engine, loader, parser, ingest, suggestion and login tests |
+| `npm run eval` | Scores the parser against the twelve real DMs and two added cases |
 | `npm run seed` | Demo data so the studio is not empty |
 | `npm run reset` | Clears the demo state and seeds it again |
 | `npm run import -- file.csv` | Merges new items into `sofia.json` |
@@ -186,7 +193,7 @@ It runs with an empty `.env.local`. Groq drops to the keyword matcher and Supaba
 | `STUDIO_PASSWORD` | yes | Its password |
 | `SESSION_SECRET` | yes | Signs the studio session cookie |
 
-Both secrets are read only inside server routes. Every table has row level security on with no policies, so the publishable key is denied on all five and only the service role gets through.
+Every secret is read on the server only, never in the browser. Every table has row level security on with no policies, so the publishable key is denied on all five and only the service role gets through.
 
 ---
 
@@ -203,11 +210,14 @@ lib/suggest/heuristics.ts  what to propose to her, pure counting
 lib/ingest/posts.ts        backfill and nightly post ingest
 lib/session.ts             the single demo studio login
 lib/store.ts               Supabase over PostgREST, in-memory fallback
+middleware.ts              the login in front of her desk and the write routes
+app/page.tsx               the browsable grid of her pieces, with search and sorts
 app/s/[item]/              the audience view
 app/studio/                her desk, behind the one demo login
 app/v/[ref]/               a shared verdict snapshot
+public/items/              a drawn illustration for each piece
 tests/                     golden cases that must always pass
-evals/                     the twelve real DMs and a scorer
+evals/                     the twelve real DMs, two added cases and a scorer
 ```
 
 ## Testing
@@ -218,7 +228,7 @@ npm test
 
 The golden cases are the contract, not coverage theatre. A blazer worn weekly buys. The grey knit skips on her own words, "soft but pills". A £60 white tee points at the £35 version. The slingback waits without an occasion. An unknown item escalates rather than guessing. A confirmed override beats the engine, overrides beat patches, and an invalid patch is rejected with an error naming the field while the previous state stays live.
 
-The parser is scored separately against the twelve real DMs from the case file, not against invented examples.
+The parser is scored separately against the twelve real DMs from the case file, not against invented examples. Two more cases were added for the worth-it split and are marked as added in the file, so it is fourteen in total.
 
 ## Notes
 
