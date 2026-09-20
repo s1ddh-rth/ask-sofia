@@ -2,6 +2,7 @@
 // copy when it is not, so every screen still works with the database down.
 // Only ever imported from server routes and server components.
 
+import { OverrideAnswerSchema } from "@/lib/api";
 import { loadData, type LoadedData } from "@/lib/data/load";
 import type {
   OverrideAnswer,
@@ -144,9 +145,17 @@ export async function getOverrides(): Promise<Record<string, OverrideAnswer>> {
   if (!res) return Object.fromEntries(memory.overrides);
   const rows = (await res.json()) as Array<{
     group_key: string;
-    answer: OverrideAnswer;
+    answer: unknown;
   }>;
-  return Object.fromEntries(rows.map((r) => [r.group_key, r.answer]));
+  const out: Record<string, OverrideAnswer> = {};
+  for (const row of rows) {
+    // A row that this app could not have written is dropped rather than
+    // rendered. The engine falls back to its own verdict for that group,
+    // which is the safe direction to fail in.
+    const checked = OverrideAnswerSchema.safeParse(row.answer);
+    if (checked.success) out[row.group_key] = checked.data;
+  }
+  return out;
 }
 
 export async function saveOverride(
@@ -271,6 +280,19 @@ export async function countShare(
     const row = memory.shares.get(ref);
     if (row) row[field] = (row[field] ?? 0) + 1;
   }
+}
+
+// Several refs in one round trip, for the list a follower keeps.
+export async function getShares(refs: string[]): Promise<ShareRow[]> {
+  if (refs.length === 0) return [];
+  const inList = refs.map((r) => `"${encodeURIComponent(r)}"`).join(",");
+  const res = await rest(`shares?ref=in.(${inList})&select=*`);
+  if (!res) {
+    return refs
+      .map((r) => memory.shares.get(r))
+      .filter((r): r is ShareRow => Boolean(r));
+  }
+  return (await res.json()) as ShareRow[];
 }
 
 export async function listShares(): Promise<ShareRow[]> {

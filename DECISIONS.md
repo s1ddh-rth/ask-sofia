@@ -310,3 +310,17 @@ nothing they could not see by opening each link themselves.
 
 Clearing the browser loses the list. That is the trade for having no account,
 and the screen says so rather than pretending otherwise.
+
+## An override is re-checked when it is read back, like a patch
+
+Patches are validated on the way in and again on the way out. Overrides were
+only checked on the way in, which left an asymmetry. A row missing its
+reasons would have reached the "Sofia answered this" block and the shared
+verdict page, both of which map over reasons, and taken the audience page
+down for everyone. A row with a reason far longer than the route allows would
+have rendered as hers.
+
+`getOverrides` now runs each row through the same schema the route uses and
+drops the ones that fail. The engine then falls back to its own verdict for
+that group, which is the safe direction to fail in, since the worst case is
+a follower seeing the rule based answer instead of her words.

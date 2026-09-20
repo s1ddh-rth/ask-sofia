@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { badRequest } from "@/lib/api";
-import { getOverrides, getShare } from "@/lib/store";
+import { getOverrides, getShares } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -20,14 +20,18 @@ export async function POST(req: Request) {
     return NextResponse.json(badRequest(parsed.error), { status: 400 });
   }
 
-  const overrides = await getOverrides();
-  const answered: string[] = [];
+  // One query for the shares and one for the overrides, not one per ref.
+  const [overrides, shares] = await Promise.all([
+    getOverrides(),
+    getShares(parsed.data.refs),
+  ]);
 
-  for (const ref of parsed.data.refs) {
-    const share = await getShare(ref);
-    const groupKey = share?.verdict?.groupKey;
-    if (groupKey && overrides[groupKey]) answered.push(ref);
-  }
+  const answered = shares
+    .filter((s) => {
+      const groupKey = s.verdict?.groupKey;
+      return Boolean(groupKey && overrides[groupKey]);
+    })
+    .map((s) => s.ref);
 
   return NextResponse.json({ answered });
 }

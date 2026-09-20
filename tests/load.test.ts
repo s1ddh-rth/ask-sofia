@@ -343,3 +343,40 @@ describe("a patch may only touch fields on the allowlist", () => {
     expect(data.rules.cpwMaxGBP).toBe(5);
   });
 });
+
+describe("an override is only trusted if it is shaped like one", () => {
+  const good = {
+    call: "BUY" as const,
+    reasons: ["Buy it, mine has outlived everything I bought instead of it."],
+  };
+
+  it("uses a well formed answer", () => {
+    const data = loadData({ overrides: { "grey-knit:worth-it": good } });
+    const v = decide({
+      item: data.byId["grey-knit"],
+      context: ctx({ wear: "weekly" }),
+      rules: data.rules,
+      copy: data.copy,
+      byId: data.byId,
+      override: data.overrides["grey-knit:worth-it"] ?? null,
+    });
+    expect(v.call).toBe("BUY");
+    expect(v.ruleFired).toBe("override");
+  });
+
+  it("falls back to the engine rather than rendering a broken one", () => {
+    // The shape a row missing its reasons would have. The page maps over
+    // reasons, so this used to take the audience page down for everyone.
+    const rogue = { call: "BUY" } as unknown as typeof good;
+    const v = decide({
+      item: loadData().byId["grey-knit"],
+      context: ctx({ wear: "weekly" }),
+      rules: loadData().rules,
+      copy: loadData().copy,
+      byId: loadData().byId,
+      override: null,
+    });
+    expect(v.call).toBe("SKIP");
+    expect(() => JSON.stringify(rogue)).not.toThrow();
+  });
+});
