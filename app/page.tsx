@@ -1,49 +1,62 @@
-import Link from "next/link";
-import { loadLive } from "@/lib/store";
+import fixture from "@/data/posts.json";
+import { ingestPosts } from "@/lib/ingest/posts";
+import { listQuestions, loadLive } from "@/lib/store";
+import Browse, { type Card } from "./browse";
 
 // Her approved patches have to show here too, not only on the item page, so
 // this renders per request rather than being baked at build time.
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { items, copy } = await loadLive();
+  const [data, questions] = await Promise.all([loadLive(), listQuestions()]);
+  const { items, copy, rules } = data;
+  const ui = copy.ui as Record<string, string>;
+
+  // How many people have asked about each piece, for the most asked sort.
+  const asked = new Map<string, number>();
+  for (const q of questions) {
+    if (!q.item_id) continue;
+    asked.set(q.item_id, (asked.get(q.item_id) ?? 0) + 1);
+  }
+
+  // Which post each piece appeared in, matched the same way the ingest does
+  // so the two never disagree.
+  const seenIn = new Map<string, { title: string; postedAt: string | null }>();
+  for (const post of ingestPosts(fixture.posts, items, rules)) {
+    for (const id of post.item_ids) {
+      const existing = seenIn.get(id);
+      const postedAt = post.postedAt ?? null;
+      if (!existing || (postedAt ?? "") > (existing.postedAt ?? "")) {
+        seenIn.set(id, { title: post.title, postedAt });
+      }
+    }
+  }
+
+  const cards: Card[] = items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    category: item.category,
+    price: item.price,
+    quote: item.quote,
+    evidence: item.evidence[0] ?? "",
+    takeLabel: copy.takeLabels[item.verdictType],
+    addedAt: item.addedAt ?? null,
+    asked: asked.get(item.id) ?? 0,
+    seenIn: seenIn.get(item.id) ?? null,
+  }));
 
   return (
-    <main className="mx-auto w-full max-w-md px-5 pb-16 pt-10">
+    <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-10">
       <p className="label">Case 002 / Operation Lookbook</p>
       <h1 className="font-heading mt-2 text-5xl font-bold uppercase leading-[0.9]">
         Ask Sofia
       </h1>
-      <p className="mt-4 text-[15px] leading-relaxed text-muted">
+      <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted">
         Her actual opinion on whether a piece is worth it for you, not a link.
         Pick something she has written about.
       </p>
 
-      <ul className="mt-8 space-y-3">
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link
-              href={`/s/${item.id}`}
-              className="block rounded-sm border border-ink/10 bg-card px-4 py-4 transition-colors active:bg-ink/5"
-            >
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="font-heading text-2xl font-semibold uppercase leading-tight">
-                  {item.name}
-                </span>
-                <span className="font-mono text-sm text-muted">
-                  £{item.price}
-                </span>
-              </div>
-              <p className="label mt-1">
-                {copy.takeLabels[item.verdictType]}
-              </p>
-              <p className="mt-2 text-[15px] italic text-ink/80">
-                &ldquo;{item.quote}&rdquo;
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <Browse cards={cards} copy={ui} />
     </main>
   );
 }

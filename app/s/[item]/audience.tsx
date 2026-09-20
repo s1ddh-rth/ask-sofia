@@ -301,7 +301,14 @@ export default function Audience({
     <>
       {item ? (
         <section className="mt-6 rounded-sm border border-ink/10 bg-card p-5">
-          <p className="label">{ui.takeLabel}</p>
+          <p className="label flex items-baseline gap-2">
+            <span>{ui.takeLabel}</span>
+            {item.evidence[0] ? (
+              <span className="text-[9px] text-muted/70">
+                {item.evidence[0]}
+              </span>
+            ) : null}
+          </p>
           <p className="font-heading mt-1 text-2xl font-semibold uppercase text-rust">
             {copy.takeLabels[item.verdictType]}
           </p>

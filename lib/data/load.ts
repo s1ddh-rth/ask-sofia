@@ -45,6 +45,7 @@ const ItemInputSchema = z.looseObject({
   paid: z.boolean().optional(),
   link: z.string().optional(),
   evidence: z.array(z.string()).optional(),
+  addedAt: z.string().optional(),
 });
 
 const RulesSchema = z.object({

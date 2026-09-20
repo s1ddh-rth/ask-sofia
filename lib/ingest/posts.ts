@@ -15,6 +15,10 @@ export type RawPost = {
   saves: number;
   purchases: number;
   item_ids?: string[];
+  // Sample values. The case pack gives no dates or audio.
+  postedAt?: string;
+  audio?: string;
+  audioTitle?: string;
 };
 
 export type IngestedPost = RawPost & {

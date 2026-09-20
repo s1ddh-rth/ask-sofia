@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import posts from "@/data/posts.json";
+import fixture from "@/data/posts.json";
+
+const posts = fixture.posts;
 import { loadData } from "@/lib/data/load";
 import { ingestPosts } from "@/lib/ingest/posts";
 

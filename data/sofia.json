@@ -42,7 +42,8 @@
       "evidence": [
         "E-04.1",
         "E-05.1"
-      ]
+      ],
+      "addedAt": "2026-01-12"
     },
     {
       "id": "vintage-leather",
@@ -61,7 +62,8 @@
       "evidence": [
         "E-04.2",
         "E-05.1"
-      ]
+      ],
+      "addedAt": "2026-02-18"
     },
     {
       "id": "silk-skirt",
@@ -82,7 +84,8 @@
       "paid": false,
       "evidence": [
         "E-04.3"
-      ]
+      ],
+      "addedAt": "2026-03-08"
     },
     {
       "id": "white-tee",
@@ -108,7 +111,8 @@
       "evidence": [
         "E-04.4",
         "E-05.1"
-      ]
+      ],
+      "addedAt": "2026-04-02"
     },
     {
       "id": "loafers",
@@ -129,7 +133,8 @@
       "evidence": [
         "E-04.5",
         "E-05.1"
-      ]
+      ],
+      "addedAt": "2026-05-16"
     },
     {
       "id": "red-slingback",
@@ -149,7 +154,8 @@
       "paid": false,
       "evidence": [
         "E-04.6"
-      ]
+      ],
+      "addedAt": "2026-06-04"
     },
     {
       "id": "grey-knit",
@@ -170,7 +176,8 @@
       "paid": false,
       "evidence": [
         "E-04.7"
-      ]
+      ],
+      "addedAt": "2026-07-22"
     },
     {
       "id": "wide-leg-denim",
@@ -191,7 +198,8 @@
       "paid": false,
       "evidence": [
         "E-04.8"
-      ]
+      ],
+      "addedAt": "2026-08-30"
     }
   ],
   "copy": {
@@ -250,7 +258,12 @@
         "weekly": "every week",
         "few": "a few times a month",
         "occasional": "now and then"
-      }
+      },
+      "searchPlaceholder": "Search by name or category",
+      "asSeenIn": "As seen in",
+      "sortNewest": "Newly added",
+      "sortAsked": "Most asked",
+      "sortPrice": "Price"
     }
   }
 }

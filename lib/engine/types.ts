@@ -44,6 +44,7 @@ export type Item = {
   paid: boolean;
   link?: string;
   evidence: string[]; // sheet refs, e.g. "E-04.1"
+  addedAt?: string; // when she added it, for sorting the browse page
   [key: string]: unknown; // unknown fields pass through untouched
 };
 
