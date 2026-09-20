@@ -54,6 +54,7 @@ async function main() {
   await wipe("overrides", "group_key=not.is.null");
   await wipe("patches", "id=not.is.null");
   await wipe("posts", "id=not.is.null");
+  await wipe("events", "id=not.is.null");
   // Seeding runs on import. The specifier is built at runtime because node
   // wants the extension and TypeScript will not accept one written inline.
   const seed = "./seed" + ".ts";

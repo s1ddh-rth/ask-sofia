@@ -234,6 +234,92 @@ const shares: Row[] = [
   },
 ];
 
+
+// Anonymous behaviour, shaped like the 16:00 evidence. E-10 has nine buyers
+// of whom seven never clicked, and every one of those saved at least three
+// looks and came back at least twice. Every row is flagged sample, so the
+// studio can say so and nothing here is mistaken for real traffic.
+const ITEM_CALLS: Record<string, string> = {
+  "black-blazer": "BUY",
+  "silk-skirt": "BUY",
+  "loafers": "BUY",
+  "wide-leg-denim": "BUY",
+  "white-tee": "BUY",
+  "red-slingback": "WAIT",
+  "grey-knit": "SKIP",
+  "vintage-leather": "WAIT",
+};
+const ITEM_IDS = Object.keys(ITEM_CALLS);
+
+function sampleEvents(): Row[] {
+  const out: Row[] = [];
+  const add = (
+    browser: string,
+    kind: string,
+    itemId: string | null,
+    detail: string | null = null,
+    ref: string | null = null,
+  ) =>
+    out.push({
+      browser_id: `sample-${browser}`,
+      kind,
+      item_id: itemId,
+      verdict_call: itemId ? ITEM_CALLS[itemId] : null,
+      detail,
+      ref,
+      sample: true,
+    });
+
+  const buyers: Array<[string, string]> = [
+    ["b01", "her-link"], ["b02", "her-link"],
+    ["b03", "somewhere-else"], ["b04", "somewhere-else"],
+    ["b05", "somewhere-else"], ["b06", "somewhere-else"],
+    ["b07", "somewhere-else"], ["b08", "somewhere-else"],
+    ["b09", "somewhere-else"],
+  ];
+  buyers.forEach(([id, how], n) => {
+    const picks = [ITEM_IDS[n % 8], ITEM_IDS[(n + 3) % 8], ITEM_IDS[(n + 5) % 8]];
+    for (const it of picks) {
+      add(id, "shown", it);
+      add(id, "saved", it);
+    }
+    add(id, "returned", picks[0]);
+    add(id, "returned", picks[1]);
+    add(id, "checkin", picks[0], how);
+  });
+
+  const undecided: Array<[string, string]> = [
+    ["b10", "not-buying"], ["b11", "still-deciding"], ["b12", "still-deciding"],
+  ];
+  undecided.forEach(([id, how], n) => {
+    const it = ITEM_IDS[(n + 2) % 8];
+    add(id, "shown", it);
+    add(id, "saved", it);
+    add(id, "returned", it);
+    add(id, "checkin", it, how);
+  });
+
+  // Sent to a friend or a partner, which E-09 puts behind 41% of purchases.
+  const shares: Array<[string, string, string]> = [
+    ["b03", "demo4k2p", "black-blazer"],
+    ["b05", "demo7nq3", "grey-knit"],
+    ["b07", "demo9xw5", "silk-skirt"],
+    ["b09", "demo4k2p", "black-blazer"],
+  ];
+  for (const [b, ref, it] of shares) {
+    add(b, "shared", it, null, ref);
+    add(`partner-${b}`, "share_opened", it, null, ref);
+  }
+  add("partner-b03", "share_opened", "black-blazer", null, "demo4k2p");
+
+  // People who saw a verdict and went no further.
+  ["b13", "b14", "b15", "b16", "b17", "b18"].forEach((b, n) =>
+    add(b, "shown", ITEM_IDS[n % 8]),
+  );
+
+  return out;
+}
+
 async function main() {
   // Clear only what this script owns.
   await rest("questions?source=eq.seed", { method: "DELETE" });
@@ -252,6 +338,10 @@ async function main() {
 
   await rest("shares", { method: "POST", body: JSON.stringify(shares) });
 
+  await rest("events?sample=eq.true", { method: "DELETE" });
+  const events = sampleEvents();
+  await rest("events", { method: "POST", body: JSON.stringify(events) });
+
   console.log(
     [
       "",
@@ -261,6 +351,7 @@ async function main() {
       "  2 thumbs down on the grey knit, which is enough to send it to review",
       "  1 answer from Sofia on the blazer group, which the repeated answer heuristic will propose as a rule",
       `  ${shares.length} shares, one with 4 opens and 2 buy taps`,
+      `  ${events.length} sample events, nine buyers of whom seven never clicked`,
       "",
     ].join("\n"),
   );

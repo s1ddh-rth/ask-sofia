@@ -1,6 +1,13 @@
 import Link from "next/link";
-import { listPosts, listQuestions, listShares, loadLive } from "@/lib/store";
+import {
+  listEvents,
+  listPosts,
+  listQuestions,
+  listShares,
+  loadLive,
+} from "@/lib/store";
 import { suggest } from "@/lib/suggest/heuristics";
+import Decisions from "./decisions";
 import EditItem from "./edit";
 import Queue, { type Group } from "./queue";
 import Posts, { type PostView } from "./posts";
@@ -13,11 +20,12 @@ export const metadata = {
 };
 
 export default async function StudioPage() {
-  const [data, questions, shares, posts] = await Promise.all([
+  const [data, questions, shares, posts, events] = await Promise.all([
     loadLive(),
     listQuestions(),
     listShares(),
     listPosts(),
+    listEvents(),
   ]);
 
   const groups = new Map<string, Group>();
@@ -128,6 +136,9 @@ export default async function StudioPage() {
           </div>
         ))}
       </dl>
+
+      <h2 className="label mt-10">Decisions you shaped</h2>
+      <Decisions events={events} />
 
       <h2 className="label mt-10">Most asked</h2>
       <ol className="mt-3 space-y-1">
