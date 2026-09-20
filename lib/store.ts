@@ -216,11 +216,12 @@ export type ShareRow = {
   created_at: string;
 };
 
-// Short, unambiguous, no lookalike characters.
+// Unambiguous alphabet, no lookalike characters. Sixteen of them is
+// roughly 79 bits, which is not worth anyone guessing at.
 const ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
 
 export function newRef(): string {
-  const bytes = new Uint8Array(8);
+  const bytes = new Uint8Array(16);
   globalThis.crypto.getRandomValues(bytes);
   return [...bytes].map((b) => ALPHABET[b % ALPHABET.length]).join("");
 }

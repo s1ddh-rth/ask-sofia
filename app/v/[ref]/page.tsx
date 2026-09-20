@@ -22,6 +22,8 @@ export async function generateMetadata({
     ? (await loadLive()).byId[share.item_id]
     : undefined;
   return {
+    // Somebody's own link. Never in a search result.
+    robots: { index: false, follow: false },
     title: item ? `${item.name} — Ask Sofia` : "A verdict — Ask Sofia",
     description: item
       ? `Sofia on the ${item.name.toLowerCase()}. "${item.quote}"`

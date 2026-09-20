@@ -149,7 +149,10 @@ function GroupCard({ group }: { group: Group }) {
         </p>
       ) : (
         <div className="mt-4 border-t border-ink/10 pt-4">
-          <p className="label">Your answer</p>
+          <p className="label">Public answer</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted">
+            Shown to everyone who asks this. Do not include personal details.
+          </p>
 
           <div className="mt-2 flex gap-2">
             {CALLS.map((c) => (
@@ -180,7 +183,7 @@ function GroupCard({ group }: { group: Group }) {
             }}
             rows={2}
             maxLength={600}
-            placeholder="In your words. This is what they will read."
+            placeholder="In your words. This is what everyone who asks this will read."
             className="mt-2 w-full resize-none rounded-sm border border-ink/15 bg-paper px-3 py-2 text-[15px] outline-none placeholder:text-muted/70 focus:border-rust"
           />
 

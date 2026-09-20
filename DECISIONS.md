@@ -280,3 +280,33 @@ A repeated BUY no longer proposes a patch. It used to set buyAgain, which is
 off the list now, and nothing that remains expresses "she would buy it
 again". Rather than invent a field to write, it proposes nothing and says
 why, which is what the thumbs down heuristic already did.
+
+## What is public, what is private, and where each lives
+
+Her confirmed answer is public. It belongs to the group, not to the person
+who happened to ask first, so it shows on the item page under "Sofia answered
+this" with her words and her call and nothing else. The studio says so where
+she types it, because the reply box is the only place that decision is made.
+
+Everything the asker contributed is private. Their text, their note and their
+taps are never rendered on a public page. They appear in the studio, which is
+behind the login, and on their own come-back link, which only they hold.
+
+Those links are sixteen random characters from an unambiguous alphabet,
+roughly seventy nine bits, and never sequential. They also carry a noindex
+tag, since somebody's own answer has no business in a search result.
+
+## Followers keep their answers without an account
+
+A follower who asks Sofia something gets a link back, and that link is now
+also remembered in their own browser under "Your questions" with a waiting or
+answered marker. It is localStorage and nothing else. No account, no email,
+no row anywhere that ties a link to a person.
+
+The answered marker needs a server round trip, so `/api/mine` takes a list of
+refs and returns which of them she has answered. It only ever accepts refs
+the caller already holds and returns only refs and a boolean, so it reveals
+nothing they could not see by opening each link themselves.
+
+Clearing the browser loses the list. That is the trade for having no account,
+and the screen says so rather than pretending otherwise.

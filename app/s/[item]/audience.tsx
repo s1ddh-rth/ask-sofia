@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { decide } from "@/lib/engine/decide";
 import { groupKey } from "@/lib/engine/keys";
 import { parseFallback } from "@/lib/parse/fallback";
+import MyQuestions, { remember } from "./mine";
 import type {
   Copy,
   Item,
@@ -245,7 +246,18 @@ export default function Audience({
       });
       if (res.ok) {
         const d = await res.json().catch(() => null);
-        if (d?.path) setBackLink(`${window.location.origin}${d.path}`);
+        if (d?.path) {
+          setBackLink(`${window.location.origin}${d.path}`);
+          if (d?.ref) {
+            remember({
+              ref: d.ref,
+              path: d.path,
+              itemId: subject?.id ?? itemSlug,
+              itemName: subject?.name ?? itemSlug.replace(/-/g, " "),
+              askedAt: new Date().toISOString(),
+            });
+          }
+        }
         setSent("done");
       } else {
         setSent("failed");
@@ -405,6 +417,8 @@ export default function Audience({
         />
       ) : null}
 
+      <MyQuestions />
+
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-ink/10 bg-paper/95 backdrop-blur">
         <div className="mx-auto w-full max-w-5xl px-5 py-3">
           {barOpen ? (
@@ -439,6 +453,22 @@ export default function Audience({
                         >
                           {copied ? "Copied" : "Copy"}
                         </button>
+                        {typeof navigator !== "undefined" && navigator.share ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator
+                                .share({
+                                  title: "My question for Sofia",
+                                  url: backLink,
+                                })
+                                .catch(() => {});
+                            }}
+                            className="shrink-0 rounded-sm border border-ink/15 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted"
+                          >
+                            Send
+                          </button>
+                        ) : null}
                       </div>
                     </>
                   ) : null}

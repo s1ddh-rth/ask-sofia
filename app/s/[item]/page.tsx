@@ -40,6 +40,14 @@ export default async function ItemPage({
   const item = byId[slug] ?? null;
   const ui = copy.ui as Record<string, string>;
 
+  // Her confirmed answers for this piece, whichever question they came from.
+  // Her words only, never anything about the person who asked.
+  const herAnswers = item
+    ? Object.entries(overrides)
+        .filter(([key]) => key.startsWith(`${item.id}:`))
+        .map(([, answer]) => answer)
+    : [];
+
   // The post this piece appeared in, matched the same way the ingest does.
   const seenIn = item
     ? (ingestPosts(fixture.posts, items, rules).find((p) =>
@@ -101,6 +109,24 @@ export default async function ItemPage({
                 &ldquo;{item.quote}&rdquo;
               </p>
             </blockquote>
+          ) : null}
+
+          {herAnswers.length > 0 ? (
+            <section className="mt-5 rounded-sm border border-rust/40 bg-rust/5 p-4">
+              <p className="label">Sofia answered this</p>
+              {herAnswers.map((answer, i) => (
+                <div key={i} className={i === 0 ? "mt-1" : "mt-3"}>
+                  <p className="font-heading text-xl font-semibold uppercase text-rust">
+                    {copy.callLabels[answer.call]}
+                  </p>
+                  {answer.reasons.map((reason, j) => (
+                    <p key={j} className="mt-1 text-[15px] leading-relaxed">
+                      {reason}
+                    </p>
+                  ))}
+                </div>
+              ))}
+            </section>
           ) : null}
 
           {seenIn ? (
