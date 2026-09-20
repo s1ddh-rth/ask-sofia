@@ -1,1 +1,251 @@
-{}
+{
+  "rules": {
+    "cpwMonths": 12,
+    "cpwMaxGBP": 4,
+    "basicCapGBP": 35,
+    "maxPairings": 3,
+    "wearsPerMonth": {
+      "weekly": 4,
+      "few": 2,
+      "occasional": 0.5
+    },
+    "quietWinnerPer1000Views": 10
+  },
+  "ownedTags": [
+    "trainers",
+    "white-tee",
+    "jeans",
+    "black-trousers",
+    "knitwear",
+    "boots"
+  ],
+  "items": [
+    {
+      "id": "black-blazer",
+      "name": "Black blazer",
+      "category": "Jacket",
+      "price": 145,
+      "size": "UK 8",
+      "style": "Tailored",
+      "stock": "in",
+      "verdictType": "investment",
+      "quote": "buy once, wear forever",
+      "buyAgain": true,
+      "pairsWith": [
+        "white-tee",
+        "wide-leg-denim",
+        "loafers"
+      ],
+      "paid": false,
+      "evidence": [
+        "E-04.1",
+        "E-05.1"
+      ]
+    },
+    {
+      "id": "vintage-leather",
+      "name": "Vintage leather jacket",
+      "category": "Jacket",
+      "price": 180,
+      "size": "UK 8",
+      "style": "Vintage",
+      "stock": "one-off",
+      "verdictType": "situational",
+      "quote": "great, but warm",
+      "buyAgain": null,
+      "seasonNote": "looks insane, too warm",
+      "pairsWith": [],
+      "paid": false,
+      "evidence": [
+        "E-04.2",
+        "E-05.1"
+      ]
+    },
+    {
+      "id": "silk-skirt",
+      "name": "Silk skirt",
+      "category": "Skirt",
+      "price": 95,
+      "size": "UK 8",
+      "style": "Minimal",
+      "stock": "in",
+      "verdictType": "investment",
+      "quote": "best with trainers",
+      "buyAgain": null,
+      "pairsWith": [
+        "trainers",
+        "white-tee",
+        "black-blazer"
+      ],
+      "paid": false,
+      "evidence": [
+        "E-04.3"
+      ]
+    },
+    {
+      "id": "white-tee",
+      "name": "White tee",
+      "category": "Top",
+      "price": 35,
+      "size": "UK 8",
+      "style": "Basic",
+      "stock": "in",
+      "verdictType": "basic",
+      "quote": "£35 is enough",
+      "buyAgain": true,
+      "cheaperOk": {
+        "maxPrice": 35,
+        "note": "£35 is enough"
+      },
+      "pairsWith": [
+        "black-blazer",
+        "wide-leg-denim",
+        "silk-skirt"
+      ],
+      "paid": false,
+      "evidence": [
+        "E-04.4",
+        "E-05.1"
+      ]
+    },
+    {
+      "id": "loafers",
+      "name": "Loafers",
+      "category": "Shoes",
+      "price": 120,
+      "size": "UK 5",
+      "style": "Classic",
+      "stock": "in",
+      "verdictType": "investment",
+      "quote": "expensive-ish, worth it",
+      "buyAgain": true,
+      "pairsWith": [
+        "wide-leg-denim",
+        "silk-skirt"
+      ],
+      "paid": false,
+      "evidence": [
+        "E-04.5",
+        "E-05.1"
+      ]
+    },
+    {
+      "id": "red-slingback",
+      "name": "Red slingback",
+      "category": "Shoes",
+      "price": 89,
+      "size": "UK 5",
+      "style": "Statement",
+      "stock": "in",
+      "verdictType": "statement",
+      "quote": "date-night shoe",
+      "buyAgain": null,
+      "pairsWith": [
+        "wide-leg-denim",
+        "silk-skirt"
+      ],
+      "paid": false,
+      "evidence": [
+        "E-04.6"
+      ]
+    },
+    {
+      "id": "grey-knit",
+      "name": "Grey knit",
+      "category": "Top",
+      "price": 78,
+      "size": "UK S",
+      "style": "Minimal",
+      "stock": "low",
+      "verdictType": "investment",
+      "quote": "soft but pills",
+      "buyAgain": null,
+      "caveat": {
+        "text": "soft but pills",
+        "severity": "hard"
+      },
+      "pairsWith": [],
+      "paid": false,
+      "evidence": [
+        "E-04.7"
+      ]
+    },
+    {
+      "id": "wide-leg-denim",
+      "name": "Wide-leg denim",
+      "category": "Trousers",
+      "price": 110,
+      "size": "UK 8",
+      "style": "Relaxed",
+      "stock": "in",
+      "verdictType": "investment",
+      "quote": "my actual uniform",
+      "buyAgain": null,
+      "pairsWith": [
+        "white-tee",
+        "black-blazer",
+        "loafers"
+      ],
+      "paid": false,
+      "evidence": [
+        "E-04.8"
+      ]
+    }
+  ],
+  "copy": {
+    "takeLabels": {
+      "investment": "Worth the money",
+      "basic": "Do not overpay",
+      "statement": "Only for the right night",
+      "situational": "Depends on the day",
+      "avoid": "Sofia would skip it"
+    },
+    "callLabels": {
+      "BUY": "Buy it",
+      "WAIT": "Wait",
+      "SKIP": "Skip it",
+      "ESCALATE": "Ask Sofia"
+    },
+    "reasons": {
+      "quote": "Sofia says \"{quote}\".",
+      "stockOut": "It is out of stock, so there is nothing to decide today.",
+      "stockOutAlternative": "Her stand in is {alternative}.",
+      "hardCaveat": "Her note on this one is \"{caveat}\", and that is the whole problem.",
+      "avoid": "This is one she would not buy again.",
+      "basicOverCap": "It is a basic, and £{cap} buys you a good one.",
+      "cheaperPointer": "{note}, so put the difference somewhere it shows.",
+      "cpwGood": "Worn {wearLabel} that is about {wears} wears in {months} months, so roughly £{cpw} a wear.",
+      "cpwBad": "Worn {wearLabel} that is only about {wears} wears in {months} months, so about £{cpw} a wear, and her line is £{max}.",
+      "statementNoOccasion": "A statement piece earns its place when you have somewhere to be in it.",
+      "situationalNoFit": "{seasonNote}.",
+      "situationalFits": "For that, it works.",
+      "overBudget": "It is £{price} and you said £{budget}.",
+      "overBudgetNoAlternative": "She has no cheaper version of this one she would stand behind.",
+      "pairings": "Goes with what you already own, {pairings}.",
+      "buyAgainTrue": "She would buy it again.",
+      "escalateUnknown": "Sofia has not written about this one yet.",
+      "escalateMissingWear": "How often you would actually wear it decides this one."
+    },
+    "ui": {
+      "takeLabel": "Sofia's take",
+      "askBarTitle": "Still unsure? Ask Sofia herself",
+      "askBarAction": "Ask Sofia",
+      "questionPlaceholder": "Ask one question about this piece",
+      "wearLabel": "How often would you wear it?",
+      "budgetLabel": "What is your budget?",
+      "ownsLabel": "What do you already own?",
+      "occasionLabel": "Is this for an occasion?",
+      "paidDisclosure": "Sofia is paid to feature this. It did not change the answer.",
+      "wearOptions": {
+        "weekly": "Every week",
+        "few": "A few times a month",
+        "occasional": "Now and then"
+      },
+      "wearPhrases": {
+        "weekly": "every week",
+        "few": "a few times a month",
+        "occasional": "now and then"
+      }
+    }
+  }
+}
