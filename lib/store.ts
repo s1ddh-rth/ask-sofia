@@ -162,7 +162,8 @@ export async function setFeedback(
   questionId: string,
   feedback: string,
 ): Promise<void> {
-  const res = await rest(`questions?id=eq.${questionId}`, {
+  // Encoded, so a crafted id cannot add its own PostgREST parameters.
+  const res = await rest(`questions?id=eq.${encodeURIComponent(questionId)}`, {
     method: "PATCH",
     body: JSON.stringify({ feedback }),
   });
