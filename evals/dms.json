@@ -1,1 +1,14 @@
-[]
+[
+  { "id": 1, "text": "WHERE is this blazer I'm begging you", "job": "where", "itemId": "black-blazer" },
+  { "id": 2, "text": "Ok but if you were me, which one would you actually buy?", "job": "decide", "itemId": null },
+  { "id": 3, "text": "I love the outfit but I live in trainers. How would you change it?", "job": "adapt", "itemId": null, "owns": ["trainers"] },
+  { "id": 4, "text": "Anything like this but under £120? I'm not paying £400 lol", "job": "cheaper", "itemId": null, "budgetGBP": 120 },
+  { "id": 5, "text": "Sending this to my sister because she needs this exact vibe", "job": "other", "itemId": null },
+  { "id": 6, "text": "What size are you in this? I'm usually an 8 but brands are all over the place.", "job": "size", "itemId": null },
+  { "id": 7, "text": "Can you find me a version of this for a wedding? Same energy, less corporate.", "job": "adapt", "itemId": null, "occasion": true },
+  { "id": 8, "text": "I bought the shoes. What should I wear with them?", "job": "pairing", "itemId": null },
+  { "id": 9, "text": "I'm trying not to buy more stuff. Can you help me use what I own?", "job": "should-buy", "itemId": null },
+  { "id": 10, "text": "This is the first creator account where I actually save everything.", "job": "other", "itemId": null },
+  { "id": 11, "text": "My bf sent me your coat video because he thinks I need it", "job": "other", "itemId": null },
+  { "id": 12, "text": "I've opened this three times. Still deciding.", "job": "decide", "itemId": null }
+]
