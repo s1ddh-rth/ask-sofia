@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { loadLive } from "@/lib/store";
 import Audience from "./audience";
@@ -46,8 +47,21 @@ export default async function ItemPage({
         {item ? item.name : slug.replace(/-/g, " ")}
       </h1>
 
+      {item?.image ? (
+        <div className="relative mt-4 aspect-[4/5] w-full overflow-hidden rounded-sm border border-ink/10">
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            sizes="(max-width: 640px) 100vw, 28rem"
+            className="object-cover"
+            priority
+          />
+        </div>
+      ) : null}
+
       {item ? (
-        <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
+        <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
           {[item.category, item.size, `£${item.price}`, STOCK_COPY[item.stock]]
             .filter(Boolean)
             .join(" / ")}

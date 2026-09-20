@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Loafers">
+  <rect width="400" height="500" fill="#EDE8E1"/>
+  <g stroke="#1C1C1C" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M66 300 Q66 232 138 224 Q196 218 232 244 Q276 274 318 282 Q342 288 342 310 L342 330 Q342 346 322 346 L92 346 Q66 346 66 322 Z" fill="#1C1C1C"/>
+    <path d="M138 232 Q176 262 232 262" fill="none" stroke="#EDE8E1" stroke-width="5"/>
+    <path d="M66 330 L342 330" stroke="#EDE8E1" stroke-width="4"/>
+  </g>
+  <rect x="150" y="242" width="52" height="12" rx="6" fill="#B5452F"/>
+</svg>

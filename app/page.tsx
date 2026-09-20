@@ -41,12 +41,13 @@ export default async function Home() {
     evidence: item.evidence[0] ?? "",
     takeLabel: copy.takeLabels[item.verdictType],
     addedAt: item.addedAt ?? null,
+    image: item.image ?? null,
     asked: asked.get(item.id) ?? 0,
     seenIn: seenIn.get(item.id) ?? null,
   }));
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-10">
+    <main className="mx-auto w-full max-w-5xl px-5 pb-16 pt-10">
       <p className="label">Case 002 / Operation Lookbook</p>
       <h1 className="font-heading mt-2 text-5xl font-bold uppercase leading-[0.9]">
         Ask Sofia

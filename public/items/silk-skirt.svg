@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Silk skirt">
+  <rect width="400" height="500" fill="#EDE8E1"/>
+  <g stroke="#1C1C1C" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M140 120 L260 120 L266 156 L134 156 Z" fill="#F6F3EE"/>
+    <path d="M134 156 L266 156 L306 402 Q200 428 94 402 Z" fill="#F6F3EE"/>
+    <path d="M176 160 L162 400" stroke="#6B6760" stroke-width="3"/>
+    <path d="M224 160 L238 400" stroke="#6B6760" stroke-width="3"/>
+    <path d="M200 160 L200 412" stroke="#6B6760" stroke-width="3"/>
+  </g>
+  <path d="M134 138 L266 138" stroke="#B5452F" stroke-width="6" stroke-linecap="round"/>
+</svg>

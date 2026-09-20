@@ -8,13 +8,16 @@ export const metadata = { title: "Sign in — Ask Sofia" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 }) {
   const { next } = await searchParams;
-  // Only ever redirect back inside this app.
-  const target = next && next.startsWith("/") && !next.startsWith("//")
-    ? next
-    : "/studio";
+  // Only ever redirect back inside this app. A second character of / or \
+  // resolves to another origin, because browsers read a backslash in a path
+  // as a slash, so /\evil.com would leave the site. Repeating the parameter
+  // hands us an array rather than a string, so take the first one.
+  const wanted = Array.isArray(next) ? next[0] : next;
+  const target =
+    typeof wanted === "string" && /^\/[^/\\]/.test(wanted) ? wanted : "/studio";
 
   return (
     <main className="mx-auto w-full max-w-sm px-5 pb-20 pt-16">

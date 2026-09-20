@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Vintage leather jacket">
+  <rect width="400" height="500" fill="#EDE8E1"/>
+  <g stroke="#1C1C1C" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M148 104 L112 132 L88 178 L70 330 L114 344 L126 254" fill="#6B6760"/>
+    <path d="M252 104 L288 132 L312 178 L330 330 L286 344 L274 254" fill="#6B6760"/>
+    <path d="M148 104 L126 254 L132 392 L200 404 L268 392 L274 254 L252 104 L200 134 Z" fill="#6B6760"/>
+    <path d="M148 104 L200 134 L176 206 L142 168 Z" fill="#EDE8E1"/>
+    <path d="M252 104 L200 134 L224 206 L258 168 Z" fill="#EDE8E1"/>
+    <path d="M216 150 L208 396" stroke="#1C1C1C" stroke-width="5"/>
+    <path d="M150 300 L188 296" stroke="#1C1C1C" stroke-width="5"/>
+    <path d="M252 296 L290 300" stroke="#1C1C1C" stroke-width="5"/>
+  </g>
+  <path d="M216 150 L208 396" stroke="#B5452F" stroke-width="3" stroke-dasharray="9 9"/>
+</svg>

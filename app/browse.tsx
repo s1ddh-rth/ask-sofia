@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -12,15 +13,29 @@ export type Card = {
   evidence: string;
   takeLabel: string;
   addedAt: string | null;
+  image: string | null;
   asked: number;
   seenIn: { title: string; postedAt: string | null } | null;
 };
 
 type Sort = "newest" | "asked" | "price";
 
-// A placeholder rather than a photo, because the case file's images are not
-// ours to ship. It keeps the grid honest about what it is.
-function Placeholder({ name }: { name: string }) {
+// Drawn illustrations, not photographs, and not from the case file. A piece
+// with no drawing falls back to its initials rather than a broken frame.
+function Figure({ name, image }: { name: string; image: string | null }) {
+  if (image) {
+    return (
+      <div className="relative aspect-[4/5] w-full border-b border-ink/10">
+        <Image
+          src={image}
+          alt={name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover"
+        />
+      </div>
+    );
+  }
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -45,6 +60,8 @@ export default function Browse({
 }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("newest");
+  // Tapping price again flips it, rather than needing two buttons.
+  const [cheapestFirst, setCheapestFirst] = useState(true);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -58,19 +75,28 @@ export default function Browse({
 
     // Sorted copies, so the incoming order is never mutated.
     return [...filtered].sort((a, b) => {
-      if (sort === "price") return a.price - b.price;
+      if (sort === "price")
+        return cheapestFirst ? a.price - b.price : b.price - a.price;
       if (sort === "asked") return b.asked - a.asked || a.name.localeCompare(b.name);
       // Newest by the post it appeared in, falling back to when she added it.
       const at = a.seenIn?.postedAt ?? a.addedAt ?? "";
       const bt = b.seenIn?.postedAt ?? b.addedAt ?? "";
       return bt.localeCompare(at);
     });
-  }, [cards, query, sort]);
+  }, [cards, query, sort, cheapestFirst]);
 
   const sorts: Array<{ key: Sort; label: string }> = [
     { key: "newest", label: copy.sortNewest },
     { key: "asked", label: copy.sortAsked },
-    { key: "price", label: copy.sortPrice },
+    {
+      key: "price",
+      label:
+        sort === "price"
+          ? cheapestFirst
+            ? copy.sortPriceLow
+            : copy.sortPriceHigh
+          : copy.sortPrice,
+    },
   ];
 
   return (
@@ -88,7 +114,14 @@ export default function Browse({
           <button
             key={s.key}
             type="button"
-            onClick={() => setSort(s.key)}
+            onClick={() => {
+              if (s.key === "price" && sort === "price") {
+                setCheapestFirst((v) => !v);
+              } else {
+                setSort(s.key);
+                if (s.key === "price") setCheapestFirst(true);
+              }
+            }}
             aria-pressed={sort === s.key}
             className={`rounded-sm border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.1em] ${
               sort === s.key
@@ -106,14 +139,14 @@ export default function Browse({
           Nothing matches that. She has not written about everything yet.
         </p>
       ) : (
-        <ul className="mt-5 grid grid-cols-2 gap-3">
+        <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {shown.map((c) => (
             <li key={c.id}>
               <Link
                 href={`/s/${c.id}`}
                 className="flex h-full flex-col overflow-hidden rounded-sm border border-ink/10 bg-card transition-colors active:bg-ink/5"
               >
-                <Placeholder name={c.name} />
+                <Figure name={c.name} image={c.image} />
                 <div className="flex flex-1 flex-col p-3">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="font-heading text-lg font-semibold uppercase leading-tight">

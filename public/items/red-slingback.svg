@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Red slingback">
+  <rect width="400" height="500" fill="#EDE8E1"/>
+  <g stroke="#1C1C1C" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M288 348 L308 348 L320 442 L302 442 Z" fill="#B5452F"/>
+    <path d="M244 292 Q292 308 302 346" fill="none" stroke-width="7"/>
+    <path d="M50 356
+             C 66 314, 130 294, 188 288
+             C 214 285, 234 284, 244 292
+             C 252 314, 256 334, 252 348
+             L 150 356 L 52 360 Z" fill="#B5452F"/>
+    <path d="M50 360 Q176 374 302 350" fill="none" stroke-width="10"/>
+  </g>
+  <path d="M96 340 Q170 330 228 300" fill="none" stroke="#EDE8E1" stroke-width="5" stroke-linecap="round"/>
+</svg>

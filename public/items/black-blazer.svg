@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Black blazer">
+  <rect width="400" height="500" fill="#EDE8E1"/>
+  <g stroke="#1C1C1C" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M152 96 L118 126 L96 168 L74 350 L118 362 L128 262" fill="#1C1C1C"/>
+    <path d="M248 96 L282 126 L304 168 L326 350 L282 362 L272 262" fill="#1C1C1C"/>
+    <path d="M152 96 L128 262 L134 420 L200 430 L266 420 L272 262 L248 96 L200 130 Z" fill="#1C1C1C"/>
+    <path d="M152 96 L200 130 L186 268 L150 214 Z" fill="#EDE8E1"/>
+    <path d="M248 96 L200 130 L214 268 L250 214 Z" fill="#EDE8E1"/>
+    <path d="M200 130 L200 300" stroke="#EDE8E1" stroke-width="4"/>
+  </g>
+  <circle cx="206" cy="318" r="7" fill="#B5452F"/>
+  <circle cx="208" cy="356" r="7" fill="#B5452F"/>
+</svg>

@@ -46,6 +46,7 @@ const ItemInputSchema = z.looseObject({
   link: z.string().optional(),
   evidence: z.array(z.string()).optional(),
   addedAt: z.string().optional(),
+  image: z.string().optional(),
 });
 
 const RulesSchema = z.object({

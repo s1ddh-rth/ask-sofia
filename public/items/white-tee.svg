@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="White tee">
+  <rect width="400" height="500" fill="#EDE8E1"/>
+  <g stroke="#1C1C1C" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M156 112 L110 134 L78 190 L118 216 L140 182" fill="#FCFBF9"/>
+    <path d="M244 112 L290 134 L322 190 L282 216 L260 182" fill="#FCFBF9"/>
+    <path d="M156 112 L140 182 L142 384 L258 384 L260 182 L244 112 Q200 148 156 112 Z" fill="#FCFBF9"/>
+    <path d="M156 112 Q200 148 244 112" fill="none"/>
+  </g>
+  <path d="M164 108 Q200 142 236 108" stroke="#B5452F" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>

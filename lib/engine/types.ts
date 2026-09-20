@@ -45,6 +45,7 @@ export type Item = {
   link?: string;
   evidence: string[]; // sheet refs, e.g. "E-04.1"
   addedAt?: string; // when she added it, for sorting the browse page
+  image?: string; // an illustration under public/, patchable like any field
   [key: string]: unknown; // unknown fields pass through untouched
 };
 

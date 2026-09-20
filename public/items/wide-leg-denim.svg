@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Wide-leg denim">
+  <rect width="400" height="500" fill="#EDE8E1"/>
+  <g stroke="#1C1C1C" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M134 92 L266 92 L272 134 L128 134 Z" fill="#6B6760"/>
+    <path d="M128 134 L272 134 L268 206 L132 206 Z" fill="#6B6760"/>
+    <path d="M132 206 L197 206 L188 320 L178 432 L72 432 L100 320 Z" fill="#6B6760"/>
+    <path d="M203 206 L268 206 L300 320 L328 432 L222 432 L212 320 Z" fill="#6B6760"/>
+  </g>
+  <g stroke="#1C1C1C" stroke-width="4" opacity="0.55">
+    <path d="M160 214 L136 424"/>
+    <path d="M240 214 L264 424"/>
+  </g>
+  <path d="M128 112 L272 112" stroke="#B5452F" stroke-width="6" stroke-linecap="round"/>
+</svg>

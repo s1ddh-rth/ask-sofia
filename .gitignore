@@ -61,3 +61,6 @@ next-env.d.ts
 
 # the importer keeps a copy of the previous data file
 data/*.bak
+
+# playwright test artefacts, never committed
+/.playwright-mcp
