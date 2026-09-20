@@ -135,25 +135,15 @@ function firstFieldOf(error: z.ZodError): string {
 // id is absent on purpose. The patch target is the id, and a change carrying
 // its own would file the item under a different one.
 export const PATCHABLE_ITEM_FIELDS = new Set([
-  "name",
-  "category",
+  "quote",
   "price",
-  "size",
-  "style",
   "stock",
   "verdictType",
-  "quote",
-  "buyAgain",
   "caveat",
-  "pairsWith",
   "cheaperOk",
   "seasonNote",
   "fitNote",
-  "paid",
-  "link",
-  "image",
-  "evidence",
-  "addedAt",
+  "pairsWith",
 ]);
 
 export const PATCHABLE_RULES_FIELDS = new Set([

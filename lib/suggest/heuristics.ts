@@ -32,8 +32,9 @@ export type QuestionLike = {
 };
 
 // Her repeated answer, encoded as something the engine can say on its own.
-// Deliberately narrow. Anything it cannot express faithfully proposes no
-// patch rather than guessing at one.
+// Deliberately narrow, and bounded by what a patch is allowed to set.
+// Anything it cannot express faithfully proposes no patch rather than
+// guessing at one.
 function patchFor(
   itemId: string,
   answer: OverrideAnswer,
@@ -57,9 +58,8 @@ function patchFor(
       reason,
     };
   }
-  if (answer.call === "BUY") {
-    return { target: itemId, change: { buyAgain: true }, reason };
-  }
+  // A repeated BUY has nothing on the patch allowlist that says it. Rather
+  // than invent a field to write, it proposes no patch and she is told why.
   return null;
 }
 

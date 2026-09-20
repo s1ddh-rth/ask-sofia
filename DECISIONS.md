@@ -261,3 +261,22 @@ A patch carrying a forbidden field is refused whole, rather than having that
 field quietly dropped and the rest applied. Silently ignoring part of what
 someone asked for is how surprises happen, and the studio never sends one of
 these anyway.
+
+## The patch allowlist is nine fields, and that has two consequences
+
+A patch may set quote, price, stock, verdictType, caveat, cheaperOk,
+seasonNote, fitNote and pairsWith. Everything else is refused with the field
+named, including image, link, name, paid, evidence and buyAgain. The list
+lives in the loader so it applies at the route and again when patches are
+read back from the database.
+
+Two things follow from it, both deliberate.
+
+A patch can no longer create a new item, because a new piece needs a name
+and name is not on the list. Adding a piece is an edit to sofia.json through
+the importer, not something the studio can do to the live app.
+
+A repeated BUY no longer proposes a patch. It used to set buyAgain, which is
+off the list now, and nothing that remains expresses "she would buy it
+again". Rather than invent a field to write, it proposes nothing and says
+why, which is what the thumbs down heuristic already did.

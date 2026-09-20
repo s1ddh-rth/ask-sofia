@@ -122,7 +122,9 @@ describe("patches", () => {
     expect(v.call).toBe("WAIT");
   });
 
-  it("can add a new item she has just written about", () => {
+  it("cannot create a new item, because name is not a patchable field", () => {
+    // A new piece needs a name, and the allowlist does not include one, so
+    // adding a piece is an edit to sofia.json rather than a patch.
     const patches: Patch[] = [
       {
         target: "linen-trousers",
@@ -131,15 +133,13 @@ describe("patches", () => {
           price: 90,
           verdictType: "situational",
           quote: "only in July",
-          seasonNote: "only in July",
         },
         reason: "Answered in the queue",
       },
     ];
     const data = loadData({ patches });
-    expect(data.items).toHaveLength(9);
-    expect(data.byId["linen-trousers"].name).toBe("Linen trousers");
-    expect(data.patchErrors).toEqual([]);
+    expect(data.items).toHaveLength(8);
+    expect(data.patchErrors[0].field).toBe("name");
   });
 
   it("rejects an invalid patch and leaves the previous state live", () => {
@@ -292,6 +292,13 @@ describe("a patch may only touch fields on the allowlist", () => {
     expect(data.byId["black-blazer"].name).toBe("Black blazer");
   });
 
+  it("refuses the fields that are not hers to change through a patch", () => {
+    // These exist on an item but are deliberately off the allowlist.
+    for (const field of ["image", "link", "name", "paid", "evidence", "buyAgain"]) {
+      expect(rejected("loafers", { [field]: "x" })?.field).toBe(field);
+    }
+  });
+
   it("refuses a field nobody put on the list", () => {
     expect(rejected("loafers", { madeUp: "anything" })?.field).toBe("madeUp");
     // A route body arrives through JSON.parse, which makes __proto__ a real
@@ -325,8 +332,8 @@ describe("a patch may only touch fields on the allowlist", () => {
       patches: [
         { target: "loafers", change: { quote: "new words", price: 130, stock: "low", verdictType: "basic" }, reason: "studio edit" },
         { target: "grey-knit", change: { caveat: { text: "pills badly", severity: "hard" } }, reason: "suggestion" },
-        { target: "white-tee", change: { buyAgain: true }, reason: "suggestion" },
-        { target: "silk-skirt", change: { image: "/items/silk-skirt.svg" }, reason: "new drawing" },
+        { target: "white-tee", change: { cheaperOk: { maxPrice: 30, note: "£30 is plenty" } }, reason: "studio edit" },
+        { target: "silk-skirt", change: { seasonNote: "summer only", fitNote: "runs small", pairsWith: ["trainers"] }, reason: "studio edit" },
         { target: "rules", change: { cpwMaxGBP: 5 }, reason: "rules edit" },
       ],
     });
