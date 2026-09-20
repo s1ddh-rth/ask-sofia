@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const EventSchema = z.object({
   // A uuid the browser made for itself, or the short fallback a private
   // window gets. Anything else is somebody making rows up.
-  browserId: z.string().regex(/^[w-]{8,64}$/),
+  browserId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/),
   kind: z.enum([
     "shown",
     "saved",
