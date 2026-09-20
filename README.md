@@ -171,6 +171,7 @@ It runs with an empty `.env.local`. Groq drops to the keyword matcher and Supaba
 | `npm test` | Engine, loader and parser tests |
 | `npm run eval` | Scores the parser against the twelve real DMs |
 | `npm run seed` | Demo data so the studio is not empty |
+| `npm run reset` | Clears the demo state and seeds it again |
 | `npm run import -- file.csv` | Merges new items into `sofia.json` |
 
 ### Environment
@@ -181,6 +182,9 @@ It runs with an empty `.env.local`. Groq drops to the keyword matcher and Supaba
 | `GROQ_MODEL` | no | `openai/gpt-oss-120b` |
 | `NEXT_PUBLIC_SUPABASE_URL` | no | Project API endpoint |
 | `SUPABASE_SERVICE_ROLE_KEY` | yes | Server routes only, never the browser |
+| `STUDIO_USER` | no | The one demo studio login |
+| `STUDIO_PASSWORD` | yes | Its password |
+| `SESSION_SECRET` | yes | Signs the studio session cookie |
 
 Both secrets are read only inside server routes. Every table has row level security on with no policies, so the publishable key is denied on all five and only the service role gets through.
 
@@ -196,9 +200,11 @@ lib/data/load.ts           sofia.json, then patches, then overrides, validated w
 lib/parse/groq.ts          free text to a validated schema
 lib/parse/fallback.ts      keyword matcher for when Groq is not there
 lib/suggest/heuristics.ts  what to propose to her, pure counting
+lib/ingest/posts.ts        backfill and nightly post ingest
+lib/session.ts             the single demo studio login
 lib/store.ts               Supabase over PostgREST, in-memory fallback
 app/s/[item]/              the audience view
-app/studio/                her desk
+app/studio/                her desk, behind the one demo login
 app/v/[ref]/               a shared verdict snapshot
 tests/                     golden cases that must always pass
 evals/                     the twelve real DMs and a scorer
@@ -216,4 +222,4 @@ The parser is scored separately against the twelve real DMs from the case file, 
 
 ## Notes
 
-`CLAUDE.md` holds the full brief and the hard rules this build is held to. `DECISIONS.md` records every judgement call made along the way and why.
+`CLAUDE.md` holds the full brief and the hard rules this build is held to. `DECISIONS.md` records every judgement call made along the way and why. `LATER.md` is what comes next, and is deliberately not started.

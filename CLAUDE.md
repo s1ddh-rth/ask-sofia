@@ -13,7 +13,7 @@ Built solo in one day for the Tano Creator Heist (Case 002, Operation Lookbook).
 5. If the engine is not confident, the answer is ESCALATE to Sofia's queue. Never invent an answer.
 6. The same input always gives the same output. No retry or re-roll buttons. Users can change their inputs instead.
 7. Every screen must still work if Groq or Supabase is down. Groq falls back to the keyword matcher. Supabase falls back to in-memory state.
-8. No vector database, no agents, no auth, no chat thread, no new dependencies without asking first.
+8. No vector database, no agents, no chat thread, no auth beyond the single demo studio login, no new dependencies without asking first.
 9. Mobile first. Judges will open it on their phones.
 10. Secrets stay server-side. Groq and Supabase are only called from API routes. Never commit `.env.local`, and never commit photos or scans of the case file.
 
@@ -70,7 +70,7 @@ evals/run.ts               parser eval, prints a score
 
 ```ts
 type VerdictType = "investment" | "basic" | "statement" | "situational" | "avoid";
-type Job = "where" | "decide" | "cheaper" | "size" | "pairing" | "adapt" | "should-buy" | "other";
+type Job = "where" | "decide" | "cheaper" | "size" | "pairing" | "adapt" | "worth-it" | "should-buy" | "other";
 
 type Item = {
   id: string;
@@ -136,7 +136,7 @@ type Patch = {
 };
 ```
 
-All schema fields beyond id, name, price, verdictType and quote are optional in the loader. Unknown fields pass through untouched. UI copy and reason templates live in `sofia.json` under `copy`, so tone changes are data edits. A patch that fails validation is rejected with an error naming the target and field, and the previous state stays live.
+Item quotes are shown to the audience as "Sofia’s take" with the evidence ref beside them in small text, on the browse grid and on the item page alike, so a claim can always be traced back to the sheet it came from. All schema fields beyond id, name, price, verdictType and quote are optional in the loader. Unknown fields pass through untouched. UI copy and reason templates live in `sofia.json` under `copy`, so tone changes are data edits. A patch that fails validation is rejected with an error naming the target and field, and the previous state stays live.
 
 ## Engine rule order (`decide`)
 
@@ -206,11 +206,19 @@ The two heuristics are repeated identical answers in the same group becoming a p
 
 ## Post ingest
 
-`lib/ingest/posts.ts` reads posts, matches them to items by name, flags quiet winners (high purchases relative to views, as in E-03.4), and stores them as drafts for Sofia to confirm, because a post shows what she wore, not her verdict. Today it runs over `data/posts.json` from a "Sync posts" button in the studio. In production the same function would run as a nightly batch job over the Instagram API and her affiliate platform. Never call a real external API from this code today.
+`lib/ingest/posts.ts` runs in two modes and never calls a real external API today. Both read `data/posts.json`, match posts to items by name and never by category, flag quiet winners at ten or more purchases per thousand views as in E-03.4, and store everything as a draft for Sofia to confirm, because a post shows what she wore and not her verdict.
+
+Backfill takes a date window, twelve months by default. In production this is the run that happens once, when she first connects her account, since Meta keeps post metrics for up to two years.
+
+Nightly takes anything posted since the last run, plus a refresh of the last two days. The refresh matters because Instagram insights can lag by up to 48 hours, so a number read last night is not always the number today. Each post carries why it is in the run, so a refreshed post is distinguishable from a new one.
+
+Both run from their own button in the studio today. The clock is injectable, so the window arithmetic is tested rather than assumed, and an undated post is never silently dropped from a backfill.
+
+The dates and audio fields in `data/posts.json` are sample values, marked as such in the file, because the case pack gives neither.
 
 ## Commands
 
-`npm run dev` runs locally. `npm test` runs the engine and loader tests. `npm run eval` runs the DM parser eval. `npm run import -- file.csv` merges new items into `sofia.json`. `npm run seed` loads demo data.
+`npm run dev` runs locally. `npm test` runs the engine and loader tests. `npm run eval` runs the DM parser eval. `npm run import -- file.csv` merges new items into `sofia.json`. `npm run seed` loads demo data. `npm run reset` clears questions, overrides, patches and posts and reseeds, for a known state before a demo.
 
 ## Tests that must always pass
 

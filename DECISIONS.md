@@ -202,3 +202,44 @@ count as a pattern is her judgement, not arithmetic.
 refuses it with the offending field named if the merged result would not
 validate. Nothing is written when it fails, so the previous state stays live,
 which is the behaviour the brief asks for and the loader tests cover.
+
+## worth-it is its own job
+
+"Should I buy the blazer" and "help me use what I own" were sharing the
+`should-buy` job, which put two different questions in one group and would
+have had Sofia answering both with one reply. worth-it now means one piece
+earning its place and should-buy means buying at all. The keyword matcher
+checks the general patterns first so "shop less" cannot be read as a question
+about an item, the Groq prompt spells the distinction out, and the eval has a
+fixture for each. This changes the Job union in CLAUDE.md, which is recorded
+there.
+
+## One login, and only in front of the studio
+
+Hard rule 8 said no auth. It now allows exactly one demo studio login and
+nothing more, because anyone with the URL could otherwise push an override
+live to every follower. The audience side stays completely open, since a
+login in front of the thing judges are meant to try would defeat the point.
+
+The session is a signed httpOnly cookie, not an account system. The HMAC uses
+Web Crypto because middleware runs on the edge runtime where node crypto is
+not available, and both the password check and the signature check compare in
+constant time. When the three environment variables are missing the login
+page names them, rather than failing in a way nobody can diagnose.
+
+## Sample values are labelled as sample values
+
+`data/posts.json` now carries `postedAt`, `audio` and `audioTitle`, and items
+carry `addedAt`. The case pack gives none of these, and the ingest modes and
+the newly added sort both need dates. Rather than quietly invent evidence,
+the fixture says in its own first line which fields are made up.
+
+## The ingest has two modes because the data has two shapes
+
+A backfill and a nightly run are not the same job. The backfill is a window,
+and runs once when she connects. The nightly run is everything since last
+time plus a deliberate re-read of the last two days, because Instagram
+insights lag by up to 48 hours and a number read last night is not always the
+number today. Each post records why it is in the run, so a refreshed post is
+distinguishable from a new one. The clock is injectable, which is what makes
+the window arithmetic testable instead of assumed.
